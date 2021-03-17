@@ -32,6 +32,10 @@ document.querySelector('#game-container').appendChild(display.getContainer());
 myImage.onload = function() {
   display.draw(0, 1, "!", "rgba(255, 255, 255, 1)");
   display.draw(0, 2, "#", "rgba(255, 0, 255, 1.0)");
+  display.draw(1, 2, "#", "rgba(255, 0, 255, 1.0)");
+  display.draw(1, 1, "!", "rgba(255, 255, 255, 1)");
+  display.draw(1, 0, "!", "rgba(255, 255, 255, 1)");
+  display.draw(2, 2, "!", "rgba(255, 0, 255, 1.0)");
 }
 
 document.querySelector('#game-container').appendChild(myImage);
