@@ -1,5 +1,5 @@
 import './style.css';
-import { Display } from 'rot-js';
+import * as ROT from 'rot-js' ;
 import tilesheet from './data/Tilesheet/monochrome_transparent_packed.png';
 
 console.log(tilesheet);
@@ -7,6 +7,32 @@ console.log(tilesheet);
 const myImage = new Image();
 
 myImage.src = tilesheet;
+
+var options = {
+  layout: "tile", //layout: "tile-gl", need to figure out why this doesn't work
+  bg: "transparent",
+  tileWidth: 16,
+  tileHeight: 16,
+  tileSet: myImage,
+  tileColorize: true,
+  tileMap: {
+      "@": [0, 0],
+      "#": [0, 16],
+      "a": [0, 32],
+      "!": [0, 48]
+  },
+  width: 3,
+  height: 3
+}
+
+var display = new ROT.Display(options);
+
+document.querySelector('#game-container').appendChild(display.getContainer());
+
+myImage.onload = function() {
+  display.draw(0, 1, "!", "rgba(255, 255, 255, 1)");
+  display.draw(0, 2, "#", "rgba(255, 0, 255, 1.0)");
+}
 
 document.querySelector('#game-container').appendChild(myImage);
 
@@ -27,18 +53,9 @@ function handleTilesheet() {
 const GAME_WIDTH = 512;
 const BG_COLOR = "#333333";
 
-let canvas, ctx;
 let gameActive = false;
 
 function init() {
-  canvas = document.querySelector('#canvas');
-  ctx = canvas.getContext('2d');
-
-  canvas.width = canvas.height = GAME_WIDTH;
-
-  ctx.fillStyle = BG_COLOR;
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
   document.addEventListener('keydown', keydown);
   gameActive = true;
 }
