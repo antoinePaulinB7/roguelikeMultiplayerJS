@@ -29,7 +29,7 @@ var display = new ROT.Display(options);
 
 window.display = display;
 
-document.querySelector('#game-container').appendChild(display.getContainer());
+document.querySelector('#game-container').append(display.getContainer());
 
 myImage.onload = function() {
   display.draw(0, 1, "!", "rgba(255, 255, 255, 1)");
@@ -40,7 +40,7 @@ myImage.onload = function() {
   display.draw(2, 2, "!", "rgba(255, 0, 255, 1.0)");
 }
 
-document.querySelector('#game-container').appendChild(myImage);
+document.querySelector('#tilesheet-selection').appendChild(myImage);
 
 // let tilesheet;
 
@@ -71,3 +71,9 @@ function keydown(event) {
 }
 
 init();
+
+document.querySelectorAll('[data-toggle]').forEach((element) => {
+  element.addEventListener('click', (event) => {
+    document.querySelector(`#${event.currentTarget.dataset.toggle}`).classList.toggle('is-active');
+  });
+});
