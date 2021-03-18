@@ -16,16 +16,18 @@ var options = {
   tileSet: myImage,
   tileColorize: true,
   tileMap: {
-      "@": [0, 0],
-      "#": [0, 16],
-      "a": [0, 32],
-      "!": [0, 48]
+    "@": [0, 0],
+    "#": [0, 16],
+    "a": [0, 32],
+    "!": [0, 48]
   },
-  width: 3,
-  height: 3
+  width: 32,
+  height: 24
 }
 
 var display = new ROT.Display(options);
+
+window.display = display;
 
 document.querySelector('#game-container').appendChild(display.getContainer());
 
