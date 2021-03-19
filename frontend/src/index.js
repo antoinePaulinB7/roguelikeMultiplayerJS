@@ -1,4 +1,6 @@
 import './style.css';
+import * as Constants from './constants';
+import * as Utils from './utils';
 import * as ROT from 'rot-js' ;
 import tilesheet from './data/Tilesheet/monochrome_transparent_packed.png';
 
@@ -16,7 +18,7 @@ var options = {
   tileSet: myImage,
   tileColorize: true,
   tileMap: {
-    "@": [0, 0],
+    "blank": [0, 0],
     "#": [0, 16],
     "a": [0, 32],
     "!": [0, 48]
@@ -36,11 +38,38 @@ myImage.onload = function() {
   display.draw(0, 2, "#", "rgba(255, 0, 255, 1.0)");
   display.draw(1, 2, "#", "rgba(255, 0, 255, 1.0)");
   display.draw(1, 1, "!", "rgba(255, 255, 255, 1)");
-  display.draw(1, 0, "!", "rgba(255, 255, 255, 1)");
+  display.draw(1, 0, "blank", "rgba(255, 255, 255, 1)");
   display.draw(2, 2, "!", "rgba(255, 0, 255, 1.0)");
 }
 
+myImage.classList.add('tilesheet-image');
+myImage.id = 'tilesheet-image';
+
+window.myImage = myImage;
+
 document.querySelector('#tilesheet-selection').appendChild(myImage);
+
+window.Constants = Constants;
+
+let tileX, tileY
+
+myImage.addEventListener('mousemove', (event) => {
+  let rect = myImage.getBoundingClientRect();
+
+  let xValue = Utils.mapNumber(event.layerX, rect.left, rect.right, 0, 0.99);
+  let yValue = Utils.mapNumber(event.layerY, rect.top, rect.bottom, 0, 0.99);
+
+  tileX = Math.floor(xValue * (Constants.tileSheetWidth / Constants.tileWidth));
+  tileY = Math.floor(yValue * (Constants.tileSheetHeight / Constants.tileHeight));
+
+  let name = Object.keys(Constants.tilesheetData).find((key) => {
+    let value = Constants.tilesheetData[key];
+    
+    return value.x === tileX && value.y === tileY;
+  });
+
+  console.log(event, tileX, tileY, name);
+});
 
 // let tilesheet;
 

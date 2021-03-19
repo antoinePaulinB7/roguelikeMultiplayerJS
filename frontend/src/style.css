@@ -8,6 +8,7 @@ canvas {
 }
 
 .sidebar {
+  width: 100vw;
   height: 100vh;
   position: absolute;
   left: 0;
@@ -21,6 +22,13 @@ canvas {
 
 .sidebar.is-active {
   transform: translateX(0%);
+}
+
+.sidebar .tilesheet-image {
+  flex-grow: 1;
+  max-width: 100%;
+  max-height: 100%;
+  padding: 20px;
 }
 
 .sidebar-toggle {

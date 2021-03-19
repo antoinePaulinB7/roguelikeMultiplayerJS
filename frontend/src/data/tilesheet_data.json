@@ -1,0 +1,54 @@
+{
+  "blank": {
+    "x": 0,
+    "y": 0
+  },
+  "broken_ground_4": {
+    "x": 1,
+    "y": 0
+  },
+  "broken_ground_3": {
+    "x": 2,
+    "y": 0
+  },
+  "broken_ground_2": {
+    "x": 3,
+    "y": 0
+  },
+  "broken_ground_1": {
+    "x": 4,
+    "y": 0
+  },
+  "grass_1": {
+    "x": 5,
+    "y": 0
+  },
+  "grass_2": {
+    "x": 6,
+    "y": 0
+  },
+  "grass_3": {
+    "x": 7,
+    "y": 0
+  },
+  "road_1_two_way": {
+    "x": 8,
+    "y": 0
+  },
+  "road_1_turn": {
+    "x": 9,
+    "y": 0
+  },
+  "road_1_three_way": {
+    "x": 10,
+    "y": 0
+  },
+  "road_1_cross": {
+    "x": 11,
+    "y": 0
+  },
+  "road_1_dead_end": {
+    "x": 12,
+    "y": 0
+  }
+}
