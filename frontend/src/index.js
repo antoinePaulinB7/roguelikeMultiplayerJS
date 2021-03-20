@@ -17,12 +17,7 @@ var options = {
   tileHeight: 16,
   tileSet: myImage,
   tileColorize: true,
-  tileMap: {
-    "blank": [0, 0],
-    "#": [0, 16],
-    "a": [0, 32],
-    "!": [0, 48]
-  },
+  tileMap: Constants.tileMap,
   width: 32,
   height: 24
 }
@@ -34,12 +29,12 @@ window.display = display;
 document.querySelector('#game-container').append(display.getContainer());
 
 myImage.onload = function() {
-  display.draw(0, 1, "!", "rgba(255, 255, 255, 1)");
-  display.draw(0, 2, "#", "rgba(255, 0, 255, 1.0)");
-  display.draw(1, 2, "#", "rgba(255, 0, 255, 1.0)");
-  display.draw(1, 1, "!", "rgba(255, 255, 255, 1)");
+  display.draw(0, 1, "broken_ground_4", "rgba(255, 255, 255, 1)");
+  display.draw(0, 2, "grass_1", "rgba(255, 0, 255, 1.0)");
+  display.draw(1, 2, "grass_2", "rgba(255, 0, 255, 1.0)");
+  display.draw(1, 1, "road_1_two_way", "rgba(255, 255, 255, 1)");
   display.draw(1, 0, "blank", "rgba(255, 255, 255, 1)");
-  display.draw(2, 2, "!", "rgba(255, 0, 255, 1.0)");
+  display.draw(2, 2, "road_1_three_way", "rgba(255, 0, 255, 1.0)");
 }
 
 myImage.classList.add('tilesheet-image');
@@ -56,8 +51,8 @@ let tileX, tileY
 myImage.addEventListener('mousemove', (event) => {
   let rect = myImage.getBoundingClientRect();
 
-  let xValue = Utils.mapNumber(event.layerX, rect.left, rect.right, 0, 0.99);
-  let yValue = Utils.mapNumber(event.layerY, rect.top, rect.bottom, 0, 0.99);
+  let xValue = Utils.mapNumber(event.layerX, rect.left, rect.right, 0, 1.0);
+  let yValue = Utils.mapNumber(event.layerY, rect.top, rect.bottom, 0, 1.0);
 
   tileX = Math.floor(xValue * (Constants.tileSheetWidth / Constants.tileWidth));
   tileY = Math.floor(yValue * (Constants.tileSheetHeight / Constants.tileHeight));
@@ -67,8 +62,6 @@ myImage.addEventListener('mousemove', (event) => {
     
     return value.x === tileX && value.y === tileY;
   });
-
-  console.log(event, tileX, tileY, name);
 });
 
 // let tilesheet;
