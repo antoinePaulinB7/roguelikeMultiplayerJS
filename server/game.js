@@ -1,8 +1,18 @@
 const { GRID_SIZE } = require('./constants')
 
+const { Glyph } = require('./glyph')
+const { Tile } = require('./tile')
+const { Map } = require('./map')
+
 const ROT = require('rot-js')
 
+let a = new Glyph('b', 'red', 'black')
+
 console.log(ROT)
+
+console.log(a)
+
+console.log(Tile.floorTile)
 
 module.exports = {
   initGame,
