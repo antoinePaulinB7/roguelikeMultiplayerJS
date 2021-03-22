@@ -16,6 +16,22 @@ class Map {
       return this._tiles[x][y] || Tile.nullTile
     }
   }
+  getRandomFloorPosition = () => {
+    let x, y
+
+    do {
+      x = Math.floor(Math.random() * this._width)
+      y = Math.floor(Math.random() * this._height)
+    } while (this.getTile(x, y) != Tile.floorTile)
+
+    return { x: x, y: y }
+  }
+
+  dig = (x, y) => {
+    if (this.getTile(x, y).isDiggable()) {
+      this._tiles[x][y] = Tile.floorTile
+    }
+  }
 }
 
 module.exports = {

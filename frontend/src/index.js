@@ -91,11 +91,6 @@ document.querySelectorAll('[data-toggle]').forEach((element) => {
   })
 })
 
-const BG_COLOR = '#231f20'
-const SNAKE_COLOR = '#c2c2c2'
-const SNAKE_COLOR_2 = '#2c2c2c'
-const FOOD_COLOR = '#e66916'
-
 const socket = io('http://192.168.0.34:3000')
 
 socket.on('init', handleInit)
@@ -105,15 +100,15 @@ socket.on('gameCode', handleGameCode)
 socket.on('unknownGame', handleUnknownGame)
 socket.on('tooManyPlayers', handleTooManyPlayers)
 
-// const gameScreen = document.querySelector('#game-screen');
-// const initialScreen = document.querySelector('#initial-screen');
-// const newGameButton = document.querySelector('#new-game-button');
-// const joinGameButton = document.querySelector('#join-game-button');
-// const gameCodeInput = document.querySelector('#game-code-input');
-// const gameCodeDisplay = document.querySelector('#game-code-display');
+const gameScreen = document.querySelector('#game-screen')
+const initialScreen = document.querySelector('#initial-screen')
+const newGameButton = document.querySelector('#new-game-button')
+const joinGameButton = document.querySelector('#join-game-button')
+const gameCodeInput = document.querySelector('#game-code-input')
+const gameCodeDisplay = document.querySelector('#game-code-display')
 
-// newGameButton.addEventListener('click', newGame);
-// joinGameButton.addEventListener('click', joinGame);
+newGameButton.addEventListener('click', newGame)
+joinGameButton.addEventListener('click', joinGame)
 
 function newGame() {
   socket.emit('newGame')
@@ -130,40 +125,9 @@ let canvas, ctx
 let playerNumber
 let gameActive = false
 
-const gameState = {
-  player: {
-    pos: {
-      x: 3,
-      y: 10,
-    },
-    vel: {
-      x: 1,
-      y: 0,
-    },
-    snake: [
-      { x: 1, y: 10 },
-      { x: 2, y: 10 },
-      { x: 3, y: 10 },
-    ],
-  },
-  food: {
-    x: 7,
-    y: 7,
-  },
-  gridSize: 20,
-}
-
 function init() {
   initialScreen.style.display = 'none'
   gameScreen.style.display = 'block'
-
-  canvas = document.querySelector('#canvas')
-  ctx = canvas.getContext('2d')
-
-  canvas.width = canvas.height = 600
-
-  ctx.fillStyle = BG_COLOR
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
 
   document.addEventListener('keydown', keydown)
   gameActive = true
@@ -174,18 +138,41 @@ function keydown(event) {
 }
 
 function paintGame(state) {
-  ctx.fillStyle = BG_COLOR
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  const map = state.map
+  paintMap(map)
 
-  const food = state.food
-  const gridSize = state.gridSize
-  const size = canvas.width / gridSize
+  const entities = state.entities
+  paintEntities(entities)
+}
 
-  ctx.fillStyle = FOOD_COLOR
-  ctx.fillRect(food.x * size, food.y * size, size, size)
+function paintMap(map) {
+  console.log(map)
 
-  paintPlayer(state.players[0], size, SNAKE_COLOR)
-  paintPlayer(state.players[1], size, SNAKE_COLOR_2)
+  for (let x = 0; x < map._width; x++) {
+    for (let y = 0; y < map._height; y++) {
+      display.draw(
+        x,
+        y,
+        map._tiles[x][y]._char,
+        map._tiles[x][y]._foreground,
+        map._tiles[x][y]._background,
+      )
+    }
+  }
+
+  console.log(map._tiles[0][0])
+}
+
+function paintEntities(entities) {
+  for (let entity of entities) {
+    display.draw(
+      entity._x,
+      entity._y,
+      entity._char,
+      entity._foreground,
+      entity._background,
+    )
+  }
 }
 
 function paintPlayer(playerState, size, color) {

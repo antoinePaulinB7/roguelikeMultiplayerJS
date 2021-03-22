@@ -1,8 +1,9 @@
 class Glyph {
-  constructor(chr, foreground, background) {
-    this._char = chr || ' '
-    this._foreground = foreground || 'white'
-    this._background = background || 'black'
+  constructor(properties) {
+    properties = properties || {}
+    this._char = properties['char'] || ' '
+    this._foreground = properties['foreground'] || 'white'
+    this._background = properties['background'] || 'black'
   }
 
   getChar = () => this._char

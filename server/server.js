@@ -4,7 +4,7 @@ const io = require('socket.io')({
   },
 })
 
-const { initGame, gameLoop, getUpdatedVelocity } = require('./game')
+const { initGame, gameLoop, handleInput } = require('./game')
 const { FRAME_RATE } = require('./constants')
 const { makeid } = require('./utils')
 
@@ -51,7 +51,7 @@ io.on('connection', (client) => {
     clientRooms[client.id] = roomName
     client.emit('gameCode', roomName)
 
-    state[roomName] = initGame()
+    state[roomName] = initGame(client.id)
 
     console.log(`player creating ${roomName}`)
 
@@ -59,7 +59,7 @@ io.on('connection', (client) => {
     client.number = 1
     client.emit('init', 1)
 
-    console.log(io.sockets.adapter.rooms)
+    emitGameState(roomName, state[roomName])
   }
 
   function handleKeydown(keyCode) {
@@ -76,11 +76,9 @@ io.on('connection', (client) => {
       return
     }
 
-    const vel = getUpdatedVelocity(keyCode)
+    console.log(client.id, keyCode)
 
-    if (vel) {
-      state[roomName].players[client.number - 1].vel = vel
-    }
+    handleInput(state[roomName], client.id, keyCode)
   }
 })
 

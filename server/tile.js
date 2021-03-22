@@ -1,16 +1,30 @@
 const { Glyph } = require('./glyph')
 
-class Tile {
-  constructor(tile) {
-    this._tile = tile
+class Tile extends Glyph {
+  constructor(properties) {
+    properties = properties || {}
+    super(properties)
+    this._isWalkable = properties['isWalkable'] || false
+    this._isDiggable = properties['isDiggable'] || false
   }
 
-  getGlyph = () => this._tile
+  isWalkable = () => this._isWalkable
+  isDiggable = () => this._isDiggable
 }
 
-Tile.nullTile = new Tile(new Glyph())
-Tile.floorTile = new Tile(new Glyph('.'))
-Tile.wallTile = new Tile(new Glyph('#', 'goldenrod'))
+Tile.nullTile = new Tile()
+
+Tile.floorTile = new Tile({
+  char: '.',
+  foreground: 'darkgrey',
+  isWalkable: true,
+})
+
+Tile.wallTile = new Tile({
+  char: '#',
+  foreground: 'goldenrod',
+  isDiggable: true,
+})
 
 module.exports = {
   Tile,
