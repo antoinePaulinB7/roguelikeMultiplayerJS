@@ -18,6 +18,7 @@ console.log(Tile.floorTile)
 
 module.exports = {
   initGame,
+  joinGame,
   gameLoop,
   handleInput,
 }
@@ -25,6 +26,23 @@ module.exports = {
 function initGame(clientId) {
   const state = createGameState(clientId)
   return state
+}
+
+function joinGame(state, clientId) {
+  let properties = Entities.playerTemplate
+  properties.clientId = clientId
+
+  let player = new Entity(properties)
+  player.setName('Player 2')
+
+  let { x, y } = state.map.getRandomFloorPosition()
+
+  player.setX(x)
+  player.setY(y)
+
+  console.log(player)
+
+  state.entities.push(player)
 }
 
 function generateMap() {

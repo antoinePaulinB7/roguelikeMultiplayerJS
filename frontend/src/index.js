@@ -146,8 +146,6 @@ function paintGame(state) {
 }
 
 function paintMap(map) {
-  console.log(map)
-
   for (let x = 0; x < map._width; x++) {
     for (let y = 0; y < map._height; y++) {
       display.draw(
@@ -159,8 +157,6 @@ function paintMap(map) {
       )
     }
   }
-
-  console.log(map._tiles[0][0])
 }
 
 function paintEntities(entities) {

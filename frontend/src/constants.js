@@ -9,8 +9,6 @@ for (const [key, value] of Object.entries(tilesheetData)) {
   tileMap[key] = [value.x * TILE_WIDTH, value.y * TILE_HEIGHT]
 }
 
-console.log(tileMap)
-
 module.exports = {
   tileWidth: TILE_WIDTH,
   tileHeight: TILE_HEIGHT,

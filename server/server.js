@@ -4,8 +4,8 @@ const io = require('socket.io')({
   },
 })
 
-const { initGame, gameLoop, handleInput } = require('./game')
-const { FRAME_RATE } = require('./constants')
+const { initGame, joinGame, gameLoop, handleInput } = require('./game')
+const { FRAME_RATE, MAX_PLAYERS } = require('./constants')
 const { makeid } = require('./utils')
 
 const state = {}
@@ -32,7 +32,7 @@ io.on('connection', (client) => {
     if (!room) {
       client.emit('unknownGame')
       return
-    } else if (room.size > 1) {
+    } else if (room.size > MAX_PLAYERS - 1) {
       client.emit('tooManyPlayers')
       return
     }
@@ -43,7 +43,9 @@ io.on('connection', (client) => {
     client.number = 2
     client.emit('init', 2)
 
-    startGameInterval(gameCode)
+    client.emit('gameCode', gameCode)
+
+    joinGame(state[gameCode], client.id)
   }
 
   function handleNewGame() {
@@ -59,7 +61,7 @@ io.on('connection', (client) => {
     client.number = 1
     client.emit('init', 1)
 
-    emitGameState(roomName, state[roomName])
+    startGameInterval(roomName)
   }
 
   function handleKeydown(keyCode) {
