@@ -98,8 +98,28 @@ function startGameInterval(roomName) {
   }, 1000 / FRAME_RATE)
 }
 
+function getCircularReplacer() {
+  const seen = new WeakSet()
+  return (key, value) => {
+    if (
+      typeof value === 'object' &&
+      (value.constructor.name == 'Engine' ||
+        value.constructor.name == 'Entity') &&
+      value !== null
+    ) {
+      if (seen.has(value)) {
+        return null
+      }
+      seen.add(value)
+    }
+    return value
+  }
+}
+
 function emitGameState(roomName, state) {
-  io.sockets.in(roomName).emit('gameState', JSON.stringify(state))
+  io.sockets
+    .in(roomName)
+    .emit('gameState', JSON.stringify(state, getCircularReplacer()))
 }
 
 function emitGameOver(roomName, winner) {

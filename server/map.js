@@ -16,13 +16,13 @@ class Map {
       return this._tiles[x][y] || Tile.nullTile
     }
   }
-  getRandomFloorPosition = () => {
+  getRandomFloorPosition = (state) => {
     let x, y
 
     do {
       x = Math.floor(Math.random() * this._width)
       y = Math.floor(Math.random() * this._height)
-    } while (this.getTile(x, y) != Tile.floorTile)
+    } while (this.getTile(x, y) != (Tile.floorTile || state.getEntityAt(x, y)))
 
     return { x: x, y: y }
   }

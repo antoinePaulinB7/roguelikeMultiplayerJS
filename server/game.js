@@ -10,12 +10,6 @@ const { Entity } = require('./entity')
 
 let a = new Glyph('b', 'red', 'black')
 
-console.log(ROT)
-
-console.log(a)
-
-console.log(Tile.floorTile)
-
 module.exports = {
   initGame,
   joinGame,
@@ -29,20 +23,13 @@ function initGame(clientId) {
 }
 
 function joinGame(state, clientId) {
-  let properties = Entities.playerTemplate
+  let properties = Entities.PlayerTemplate(state)
   properties.clientId = clientId
 
   let player = new Entity(properties)
   player.setName('Player 2')
 
-  let { x, y } = state.map.getRandomFloorPosition()
-
-  player.setX(x)
-  player.setY(y)
-
-  console.log(player)
-
-  state.entities.push(player)
+  state.addEntityAtRandomPosition(player)
 }
 
 function generateMap() {
@@ -75,30 +62,67 @@ function generateMap() {
   return new Map(map)
 }
 
+class State {
+  constructor() {
+    this.map = generateMap()
+    this.entities = []
+    this.scheduler = new ROT.Scheduler.Simple()
+    this.engine = new ROT.Engine(this.scheduler)
+
+    for (let i = 0; i < 10; i++) {
+      this.addEntityAtRandomPosition(new Entity(Entities.FungusTemplate))
+    }
+  }
+
+  getEntityAt = (x, y) => {
+    for (let entity of this.entities) {
+      if (entity.getX() == x && entity.getY() == y) {
+        return entity
+      }
+    }
+  }
+
+  addEntity = (entity) => {
+    if (
+      entity.getX() < 0 ||
+      entity.getX() >= this.map.getWidth() ||
+      entity.getY() < 0 ||
+      entity.getY() >= this.map.getHeight()
+    ) {
+      throw new Error('Adding entity out of bounds.')
+    }
+
+    this.entities.push(entity)
+
+    if (entity.hasMixin('Actor')) {
+      this.scheduler.add(entity, true)
+    }
+  }
+
+  addEntityAtRandomPosition = (entity) => {
+    let { x, y } = this.map.getRandomFloorPosition(this)
+    entity.setX(x)
+    entity.setY(y)
+    this.addEntity(entity)
+  }
+}
+
 function createGameState(clientId) {
-  const map = generateMap()
+  const state = new State()
 
-  const entities = []
-
-  let properties = Entities.playerTemplate
+  let properties = Entities.PlayerTemplate(state)
   properties.clientId = clientId
+
+  console.log(properties)
 
   let player = new Entity(properties)
   player.setName('Player 1')
 
-  let { x, y } = map.getRandomFloorPosition()
+  state.addEntityAtRandomPosition(player)
 
-  player.setX(x)
-  player.setY(y)
+  state.engine.start()
 
-  console.log(player)
-
-  entities.push(player)
-
-  return {
-    map,
-    entities,
-  }
+  return state
 }
 
 function gameLoop(state) {
@@ -114,10 +138,32 @@ function gameLoop(state) {
 function handleInput(state, clientId, keyCode) {
   console.log(ROT.DIRS[4])
 
-  let player = state.entities.find((entity) => entity.getClientId() == clientId)
+  let player = state.entities
+    .filter((entity) => entity.hasMixin('ClientController'))
+    .find((entity) => entity.getClientId() == clientId)
 
   // player.tryMove()
+
   console.log(player)
+
+  // player.tryMove(1, 0, state)
+
+  switch (keyCode) {
+    case ROT.KEYS.VK_LEFT:
+      player.tryMove(-1, 0, state)
+      break
+    case ROT.KEYS.VK_RIGHT:
+      player.tryMove(1, 0, state)
+      break
+    case ROT.KEYS.VK_UP:
+      player.tryMove(0, -1, state)
+      break
+    case ROT.KEYS.VK_DOWN:
+      player.tryMove(0, 1, state)
+      break
+  }
+
+  state.engine.unlock()
 }
 
 function getUpdatedVelocity(keyCode) {
