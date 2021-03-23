@@ -9,6 +9,7 @@ class Entity extends Glyph {
     this._y = properties['y'] || 0
 
     this._attachedMixins = {}
+    this._attachedMixinGroups = {}
 
     let mixins = properties['mixins'] || []
 
@@ -22,6 +23,10 @@ class Entity extends Glyph {
       }
 
       this._attachedMixins[mixin.name] = true
+
+      if (mixin.groupName) {
+        this._attachedMixinGroups[mixin.groupName] = true
+      }
 
       if (mixin.init) {
         mixin.init.call(this, properties)
@@ -41,7 +46,7 @@ class Entity extends Glyph {
     if (typeof mixin === 'object') {
       return this._attachedMixins[mixin.name]
     } else {
-      return this._attachedMixins[mixin]
+      return this._attachedMixins[mixin] || this._attachedMixinGroups[mixin]
     }
   }
 }
