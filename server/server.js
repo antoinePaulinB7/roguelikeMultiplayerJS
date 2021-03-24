@@ -78,13 +78,14 @@ io.on('connection', (client) => {
       return
     }
 
-    console.log(client.id, keyCode)
-
     handleInput(state[roomName], client.id, keyCode)
+
+    console.log(client.id, keyCode)
   }
 })
 
 function startGameInterval(roomName) {
+  // emitGameState(roomName, state[roomName])
   const intervalId = setInterval(() => {
     const winner = gameLoop(state[roomName])
 
@@ -98,19 +99,17 @@ function startGameInterval(roomName) {
   }, 1000 / FRAME_RATE)
 }
 
+const nulls = { Engine: true, Simple: true }
+const ignores = { Tile: true }
+
 function getCircularReplacer() {
   const seen = new WeakSet()
+
   return (key, value) => {
-    if (
-      typeof value === 'object' &&
-      (value.constructor.name == 'Engine' ||
-        value.constructor.name == 'Entity') &&
-      value !== null
-    ) {
-      if (seen.has(value)) {
+    if (typeof value === 'object' && value !== null) {
+      if (nulls[value.constructor.name]) {
         return null
       }
-      seen.add(value)
     }
     return value
   }
@@ -119,7 +118,13 @@ function getCircularReplacer() {
 function emitGameState(roomName, state) {
   io.sockets
     .in(roomName)
-    .emit('gameState', JSON.stringify(state, getCircularReplacer()))
+    .emit(
+      'gameState',
+      JSON.stringify(
+        { map: state.map, entities: state.entities },
+        getCircularReplacer(),
+      ),
+    )
 }
 
 function emitGameOver(roomName, winner) {

@@ -136,7 +136,7 @@ function gameLoop(state) {
 }
 
 function handleInput(state, clientId, keyCode) {
-  console.log(ROT.DIRS[4])
+  // console.log(ROT.DIRS[4])
 
   let player = state.entities
     .filter((entity) => entity.hasMixin('ClientController'))
@@ -144,7 +144,7 @@ function handleInput(state, clientId, keyCode) {
 
   // player.tryMove()
 
-  console.log(player)
+  // console.log(player)
 
   // player.tryMove(1, 0, state)
 
