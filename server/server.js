@@ -65,6 +65,8 @@ io.on('connection', (client) => {
   }
 
   function handleKeydown(keyCode) {
+    // let time = Date.now()
+
     const roomName = clientRooms[client.id]
 
     if (!roomName) {
@@ -80,7 +82,9 @@ io.on('connection', (client) => {
 
     handleInput(state[roomName], client.id, keyCode)
 
-    console.log(client.id, keyCode)
+    // let totalTime = Date.now() - time
+
+    // console.log(client.id, keyCode, totalTime)
   }
 })
 
@@ -88,6 +92,7 @@ function startGameInterval(roomName) {
   const intervalId = setInterval(() => {
     const winner = gameLoop(state[roomName])
 
+    let time = Date.now()
     if (!winner) {
       emitGameState(roomName, state[roomName])
     } else {
@@ -95,6 +100,8 @@ function startGameInterval(roomName) {
       state[roomName] = null
       clearInterval(intervalId)
     }
+
+    console.log(Date.now() - time)
   }, 1000 / FRAME_RATE)
 }
 
@@ -115,15 +122,16 @@ function getCircularReplacer() {
 }
 
 function emitGameState(roomName, state) {
-  io.sockets
-    .in(roomName)
-    .emit(
-      'gameState',
-      JSON.stringify(
-        { map: state.map, entities: state.entities },
-        getCircularReplacer(),
-      ),
-    )
+  io.sockets.in(roomName).emit('gameState', state.getJSON())
+  // io.sockets
+  //   .in(roomName)
+  //   .emit(
+  //     'gameState',
+  //     JSON.stringify(
+  //       { map: state.map, entities: state.entities },
+  //       getCircularReplacer(),
+  //     ),
+  //   )
 }
 
 function emitGameOver(roomName, winner) {

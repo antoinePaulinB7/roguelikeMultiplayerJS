@@ -3,7 +3,6 @@ class Mixins {}
 Mixins.Moveable = {
   name: 'Moveable',
   tryMove: function (x, y, state) {
-    console.log('default trying to move')
     x = this._x + x
     y = this._y + y
 
@@ -28,7 +27,6 @@ Mixins.PlayerMoveable = {
   name: 'PlayerMoveable',
   groupName: 'Moveable',
   tryMove: function (x, y, state) {
-    console.log('player trying to move')
     x = this._x + x
     y = this._y + y
 
@@ -53,7 +51,6 @@ Mixins.MoleratMoveable = {
   name: 'MoleratMoveable',
   groupName: 'Moveable',
   tryMove: function (x, y, state) {
-    console.log('molerat trying to move')
     x = this._x + x
     y = this._y + y
 
@@ -78,7 +75,6 @@ Mixins.GhostMoveable = {
   name: 'GhostMoveable',
   groupName: 'Moveable',
   tryMove: function (x, y, state) {
-    console.log('ghost trying to move')
     x = this._x + x
     y = this._y + y
 
@@ -104,8 +100,6 @@ Mixins.PlayerActor = {
   groupName: 'Actor',
   init: function (properties) {
     this._engine = properties['state'].engine
-
-    console.log(this)
   },
   act: function () {
     this._engine.lock()

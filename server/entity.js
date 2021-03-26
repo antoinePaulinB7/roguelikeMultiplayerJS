@@ -15,8 +15,6 @@ class Entity extends Glyph {
 
     for (let mixin of mixins) {
       for (let key in mixin) {
-        console.log(key)
-
         if (key != 'init' && key != 'name' && !this.hasOwnProperty(key)) {
           this[key] = mixin[key]
         }

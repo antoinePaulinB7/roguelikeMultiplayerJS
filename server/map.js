@@ -11,7 +11,7 @@ class Map {
   getHeight = () => this._height
   getTile = (x, y) => {
     if (x < 0 || x >= this._width || y < 0 || y >= this._height) {
-      return null
+      return Tile.nullTile
     } else {
       return this._tiles[x][y] || Tile.nullTile
     }

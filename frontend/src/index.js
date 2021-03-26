@@ -171,16 +171,6 @@ function paintEntities(entities) {
   }
 }
 
-function paintPlayer(playerState, size, color) {
-  const snake = playerState.snake
-
-  ctx.fillStyle = color
-
-  for (let cell of snake) {
-    ctx.fillRect(cell.x * size, cell.y * size, size, size)
-  }
-}
-
 function handleInit(number) {
   playerNumber = number
 }

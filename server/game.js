@@ -105,6 +105,19 @@ class State {
     entity.setY(y)
     this.addEntity(entity)
   }
+
+  getJSON = () => {
+    let compressedEntities = this.entities.map((entity) => {
+      return {
+        _x: entity.getX(),
+        _y: entity.getY(),
+        _char: entity.getChar(),
+        _foreground: entity.getForeground(),
+        _background: entity.getBackground(),
+      }
+    })
+    return JSON.stringify({ map: this.map, entities: compressedEntities })
+  }
 }
 
 function createGameState(clientId) {
