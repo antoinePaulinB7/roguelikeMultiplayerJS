@@ -106,17 +106,65 @@ class State {
     this.addEntity(entity)
   }
 
-  getJSON = () => {
-    let compressedEntities = this.entities.map((entity) => {
-      return {
-        _x: entity.getX(),
-        _y: entity.getY(),
-        _char: entity.getChar(),
-        _foreground: entity.getForeground(),
-        _background: entity.getBackground(),
+  getJSON = (clientId) => {
+    if (clientId) {
+      let clientEntity = this.entities.find(
+        (entity) =>
+          entity.hasMixin('ClientController') &&
+          entity.getClientId() == clientId,
+      )
+
+      let compressedEntities = this.entities
+        .filter(
+          (entity) =>
+            entity.getX() >= clientEntity.getX() - 5 &&
+            entity.getX() <= clientEntity.getX() + 5 &&
+            entity.getY() >= clientEntity.getY() - 5 &&
+            entity.getY() <= clientEntity.getY() + 5,
+        )
+        .map((entity) => {
+          return {
+            _x: entity.getX(),
+            _y: entity.getY(),
+            _char: entity.getChar(),
+            _foreground: entity.getForeground(),
+            _background: entity.getBackground(),
+          }
+        })
+
+      let sectionedMap = {
+        _width: this.map.getWidth(),
+        _height: this.map.getHeight(),
+        _tiles: [],
+        _offsetX: clientEntity.getX() - 5,
+        _offsetY: clientEntity.getY() - 5,
       }
-    })
-    return JSON.stringify({ map: this.map, entities: compressedEntities })
+
+      for (let x = 0; x < 10; x++) {
+        sectionedMap._tiles.push([])
+        for (let y = 0; y < 10; y++) {
+          sectionedMap._tiles[x].push(
+            this.map.getTile(
+              x + sectionedMap._offsetX,
+              y + sectionedMap._offsetY,
+            ),
+          )
+        }
+      }
+
+      return JSON.stringify({ map: sectionedMap, entities: compressedEntities })
+    } else {
+      let compressedEntities = this.entities.map((entity) => {
+        return {
+          _x: entity.getX(),
+          _y: entity.getY(),
+          _char: entity.getChar(),
+          _foreground: entity.getForeground(),
+          _background: entity.getBackground(),
+        }
+      })
+      return JSON.stringify({ map: this.map, entities: compressedEntities })
+    }
   }
 }
 

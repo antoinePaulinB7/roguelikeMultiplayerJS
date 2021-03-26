@@ -139,27 +139,21 @@ function keydown(event) {
 
 function paintGame(state) {
   const map = state.map
-  paintMap(map)
 
-  const entities = state.entities
-  paintEntities(entities)
-}
-
-function paintMap(map) {
-  for (let x = 0; x < map._width; x++) {
-    for (let y = 0; y < map._height; y++) {
+  for (let x = 0; x < map._tiles.length; x++) {
+    for (let y = 0; y < map._tiles[x].length; y++) {
       display.draw(
-        x,
-        y,
+        x + (map._offsetX || 0),
+        y + (map._offsetY || 0),
         map._tiles[x][y]._char,
         map._tiles[x][y]._foreground,
         map._tiles[x][y]._background,
       )
     }
   }
-}
 
-function paintEntities(entities) {
+  const entities = state.entities
+
   for (let entity of entities) {
     display.draw(
       entity._x,
