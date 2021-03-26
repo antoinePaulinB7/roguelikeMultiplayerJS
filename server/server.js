@@ -122,7 +122,7 @@ function getCircularReplacer() {
 }
 
 function emitGameState(roomName, state) {
-  console.log(io.sockets.adapter.rooms.get(roomName))
+  // console.log(io.sockets.adapter.rooms.get(roomName))
 
   let clients = io.sockets.adapter.rooms.get(roomName)
 

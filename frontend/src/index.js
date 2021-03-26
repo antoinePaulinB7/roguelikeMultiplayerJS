@@ -25,17 +25,22 @@ var options = {
 
 var display = new ROT.Display(options)
 
+// var backgroundDisplay = new ROT.Display(options)
+
 window.display = display
 
+// document
+//   .querySelector('#game-container')
+//   .append(backgroundDisplay.getContainer())
 document.querySelector('#game-container').append(display.getContainer())
 
 myImage.onload = function () {
-  display.draw(0, 1, 'broken_ground_4', 'rgba(255, 255, 255, 1)')
-  display.draw(0, 2, 'grass_1', 'rgba(255, 0, 255, 1.0)')
-  display.draw(1, 2, 'grass_2', 'rgba(255, 0, 255, 1.0)')
-  display.draw(1, 1, 'road_1_two_way', 'rgba(255, 255, 255, 1)')
-  display.draw(1, 0, 'blank', 'rgba(255, 255, 255, 1)')
-  display.draw(2, 2, 'road_1_three_way', 'rgba(255, 0, 255, 1.0)')
+  // display.draw(0, 1, 'broken_ground_4', 'rgba(255, 255, 255, 1)')
+  // display.draw(0, 2, 'grass_1', 'rgba(255, 0, 255, 1.0)')
+  // display.draw(1, 2, 'grass_2', 'rgba(255, 0, 255, 1.0)')
+  // display.draw(1, 1, 'road_1_two_way', 'rgba(255, 255, 255, 1)')
+  // display.draw(1, 0, 'blank', 'rgba(255, 255, 255, 1)')
+  // display.draw(2, 2, 'road_1_three_way', 'rgba(255, 0, 255, 1.0)')
 }
 
 myImage.classList.add('tilesheet-image')
@@ -137,8 +142,32 @@ function keydown(event) {
   socket.emit('keydown', event.keyCode)
 }
 
+function clearDisplay() {
+  console.log(display.getOptions().width, display.getOptions().height)
+
+  for (let x = 0; x < display.getOptions().width; x++) {
+    for (let y = 0; y < display.getOptions().height; y++) {
+      display.draw(x, y, 'blank', 'transparent', 'transparent')
+    }
+  }
+}
+
 function paintGame(state) {
+  // clearDisplay()
+
   const map = state.map
+
+  // for (let x = 0; x < map._tiles.length; x++) {
+  //   for (let y = 0; y < map._tiles[x].length; y++) {
+  //     backgroundDisplay.draw(
+  //       x + (map._offsetX || 0),
+  //       y + (map._offsetY || 0),
+  //       map._tiles[x][y]._char,
+  //       'darkGrey', //map._tiles[x][y]._foreground,
+  //       'black', //map._tiles[x][y]._background,
+  //     )
+  //   }
+  // }
 
   for (let x = 0; x < map._tiles.length; x++) {
     for (let y = 0; y < map._tiles[x].length; y++) {

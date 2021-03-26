@@ -117,10 +117,10 @@ class State {
       let compressedEntities = this.entities
         .filter(
           (entity) =>
-            entity.getX() >= clientEntity.getX() - 5 &&
-            entity.getX() <= clientEntity.getX() + 5 &&
-            entity.getY() >= clientEntity.getY() - 5 &&
-            entity.getY() <= clientEntity.getY() + 5,
+            entity.getX() >= clientEntity.getX() - 4 &&
+            entity.getX() <= clientEntity.getX() + 4 &&
+            entity.getY() >= clientEntity.getY() - 4 &&
+            entity.getY() <= clientEntity.getY() + 4,
         )
         .map((entity) => {
           return {
@@ -136,13 +136,13 @@ class State {
         _width: this.map.getWidth(),
         _height: this.map.getHeight(),
         _tiles: [],
-        _offsetX: clientEntity.getX() - 5,
-        _offsetY: clientEntity.getY() - 5,
+        _offsetX: clientEntity.getX() - 4,
+        _offsetY: clientEntity.getY() - 4,
       }
 
-      for (let x = 0; x < 10; x++) {
+      for (let x = 0; x < 9; x++) {
         sectionedMap._tiles.push([])
-        for (let y = 0; y < 10; y++) {
+        for (let y = 0; y < 9; y++) {
           sectionedMap._tiles[x].push(
             this.map.getTile(
               x + sectionedMap._offsetX,
