@@ -8,8 +8,6 @@ const { Entities, Mixins } = require('./entities')
 const ROT = require('rot-js')
 const { Entity } = require('./entity')
 
-let a = new Glyph('b', 'red', 'black')
-
 module.exports = {
   initGame,
   joinGame,
@@ -197,17 +195,9 @@ function gameLoop(state) {
 }
 
 function handleInput(state, clientId, keyCode) {
-  // console.log(ROT.DIRS[4])
-
   let player = state.entities
     .filter((entity) => entity.hasMixin('ClientController'))
     .find((entity) => entity.getClientId() == clientId)
-
-  // player.tryMove()
-
-  // console.log(player)
-
-  // player.tryMove(1, 0, state)
 
   switch (keyCode) {
     case ROT.KEYS.VK_LEFT:

@@ -25,13 +25,8 @@ var options = {
 
 var display = new ROT.Display(options)
 
-// var backgroundDisplay = new ROT.Display(options)
-
 window.display = display
 
-// document
-//   .querySelector('#game-container')
-//   .append(backgroundDisplay.getContainer())
 document.querySelector('#game-container').append(display.getContainer())
 
 myImage.onload = function () {
@@ -71,8 +66,6 @@ myImage.addEventListener('mousemove', (event) => {
     return value.x === tileX && value.y === tileY
   })
 })
-
-// let tilesheet;
 
 const tilesheetElement = document.querySelector('#tilesheet')
 tilesheetElement.addEventListener('change', handleTilesheet)
@@ -153,21 +146,7 @@ function clearDisplay() {
 }
 
 function paintGame(state) {
-  // clearDisplay()
-
   const map = state.map
-
-  // for (let x = 0; x < map._tiles.length; x++) {
-  //   for (let y = 0; y < map._tiles[x].length; y++) {
-  //     backgroundDisplay.draw(
-  //       x + (map._offsetX || 0),
-  //       y + (map._offsetY || 0),
-  //       map._tiles[x][y]._char,
-  //       'darkGrey', //map._tiles[x][y]._foreground,
-  //       'black', //map._tiles[x][y]._background,
-  //     )
-  //   }
-  // }
 
   for (let x = 0; x < map._tiles.length; x++) {
     for (let y = 0; y < map._tiles[x].length; y++) {
