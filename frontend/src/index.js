@@ -12,7 +12,7 @@ const myImage = new Image()
 myImage.src = tilesheet
 
 var options = {
-  layout: 'tile', //layout: "tile-gl", need to figure out why this doesn't work
+  layout: 'tile-gl',
   bg: 'transparent',
   tileWidth: 16,
   tileHeight: 16,
@@ -25,8 +25,15 @@ var options = {
 
 var display = new ROT.Display(options)
 
+options.bg = '#030303'
+
+var backgroundDisplay = new ROT.Display(options)
+
 window.display = display
 
+document
+  .querySelector('#game-container')
+  .append(backgroundDisplay.getContainer())
 document.querySelector('#game-container').append(display.getContainer())
 
 myImage.onload = function () {
@@ -148,8 +155,17 @@ function clearDisplay() {
 function paintGame(state) {
   const map = state.map
 
+  display.clear()
+
   for (let x = 0; x < map._tiles.length; x++) {
     for (let y = 0; y < map._tiles[x].length; y++) {
+      backgroundDisplay.draw(
+        x + (map._offsetX || 0),
+        y + (map._offsetY || 0),
+        map._tiles[x][y]._char,
+        '#222222',
+        'transparent',
+      )
       display.draw(
         x + (map._offsetX || 0),
         y + (map._offsetY || 0),

@@ -90,18 +90,27 @@ io.on('connection', (client) => {
 
 function startGameInterval(roomName) {
   const intervalId = setInterval(() => {
+    // let time = Date.now()
     const winner = gameLoop(state[roomName])
 
-    let time = Date.now()
-    if (!winner) {
-      emitGameState(roomName, state[roomName])
-    } else {
-      emitGameOver(roomName, winner)
-      state[roomName] = null
+    let clients = io.sockets.adapter.rooms.get(roomName)
+
+    if (!clients) {
       clearInterval(intervalId)
+      return
     }
 
-    console.log(Date.now() - time)
+    for (const clientId of clients ? clients : []) {
+      if (!winner) {
+        emitGameState(clientId, state[roomName])
+      } else {
+        emitGameOver(clientId, winner)
+        state[roomName] = null
+        clearInterval(intervalId)
+      }
+    }
+
+    // console.log(Date.now() - time)
   }, 1000 / FRAME_RATE)
 }
 
@@ -121,30 +130,14 @@ function getCircularReplacer() {
   }
 }
 
-function emitGameState(roomName, state) {
-  // console.log(io.sockets.adapter.rooms.get(roomName))
-
-  let clients = io.sockets.adapter.rooms.get(roomName)
-
-  for (const clientId of clients) {
-    const clientSocket = io.sockets.sockets.get(clientId)
-
-    clientSocket.emit('gameState', state.getJSON(clientId))
-  }
-  // .emit('gameState', state.getJSON())
-  // io.sockets
-  //   .in(roomName)
-  //   .emit(
-  //     'gameState',
-  //     JSON.stringify(
-  //       { map: state.map, entities: state.entities },
-  //       getCircularReplacer(),
-  //     ),
-  //   )
+function emitGameState(clientId, state) {
+  const clientSocket = io.sockets.sockets.get(clientId)
+  clientSocket.emit('gameState', state.getJSON(clientId))
 }
 
-function emitGameOver(roomName, winner) {
-  io.sockets.in(roomName).emit('gameOver', JSON.stringify({ winner }))
+function emitGameOver(clientId, winner) {
+  const clientSocket = io.sockets.sockets.get(clientId)
+  clientSocket.emit('gameOver', JSON.stringify({ winner }))
 }
 
 io.listen('3000')
