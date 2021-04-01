@@ -22,7 +22,7 @@ class Map {
     do {
       x = Math.floor(Math.random() * this._width)
       y = Math.floor(Math.random() * this._height)
-    } while (this.getTile(x, y) != (Tile.floorTile || state.getEntityAt(x, y)))
+    } while (!state.isEmptyFloor(x, y))
 
     return { x: x, y: y }
   }

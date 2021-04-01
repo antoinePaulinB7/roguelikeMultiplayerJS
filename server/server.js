@@ -7,6 +7,7 @@ const io = require('socket.io')({
 const { initGame, joinGame, gameLoop, handleInput } = require('./game')
 const { FRAME_RATE, MAX_PLAYERS } = require('./constants')
 const { makeid } = require('./utils')
+const ServerMessages = require('./server-messages')
 
 const state = {}
 const clientRooms = {}
@@ -132,6 +133,12 @@ function getCircularReplacer() {
 
 function emitGameState(clientId, state) {
   const clientSocket = io.sockets.sockets.get(clientId)
+  let stateData = state.getJSON(clientId)
+
+  if (stateData == ServerMessages.PLAYER_DIED) {
+    clientSocket.emit('gameOver', '')
+    clientSocket.leave(clientRooms[clientSocket.id])
+  }
   clientSocket.emit('gameState', state.getJSON(clientId))
 }
 

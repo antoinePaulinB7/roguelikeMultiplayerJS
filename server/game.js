@@ -7,6 +7,7 @@ const { Entities, Mixins } = require('./entities')
 
 const ROT = require('rot-js')
 const { Entity } = require('./entity')
+const ServerMessages = require('./server-messages')
 
 module.exports = {
   initGame,
@@ -68,7 +69,7 @@ class State {
     this.engine = new ROT.Engine(this.scheduler)
 
     for (let i = 0; i < 10; i++) {
-      this.addEntityAtRandomPosition(new Entity(Entities.FungusTemplate))
+      this.addEntityAtRandomPosition(new Entity(Entities.FungusTemplate(this)))
     }
   }
 
@@ -78,6 +79,12 @@ class State {
         return entity
       }
     }
+
+    return null
+  }
+
+  isEmptyFloor = (x, y) => {
+    return this.map.getTile(x, y) == Tile.floorTile && !this.getEntityAt(x, y)
   }
 
   addEntity = (entity) => {
@@ -97,6 +104,17 @@ class State {
     }
   }
 
+  removeEntity = (entity) => {
+    this.entities = this.entities.filter((en) => en != entity)
+
+    if (entity.hasMixin('Actor')) {
+      this.scheduler.remove(entity)
+    }
+
+    if (entity.hasMixin('ClientController')) {
+    }
+  }
+
   addEntityAtRandomPosition = (entity) => {
     let { x, y } = this.map.getRandomFloorPosition(this)
     entity.setX(x)
@@ -104,7 +122,16 @@ class State {
     this.addEntity(entity)
   }
 
-  getJSON = (clientId) => {
+  sendMessage = (recipient, message, args) => {
+    if (recipient.hasMixin('MessageRecipient')) {
+      if (args) {
+        // message = format(message, args) // HERE (define format)
+      }
+      recipient.receiveMessage(message)
+    }
+  }
+
+  getJSON = (clientId, range = 4) => {
     if (clientId) {
       let clientEntity = this.entities.find(
         (entity) =>
@@ -112,13 +139,17 @@ class State {
           entity.getClientId() == clientId,
       )
 
+      if (!clientEntity) {
+        return ServerMessages.PLAYER_DIED
+      }
+
       let compressedEntities = this.entities
         .filter(
           (entity) =>
-            entity.getX() >= clientEntity.getX() - 4 &&
-            entity.getX() <= clientEntity.getX() + 4 &&
-            entity.getY() >= clientEntity.getY() - 4 &&
-            entity.getY() <= clientEntity.getY() + 4,
+            entity.getX() >= clientEntity.getX() - range &&
+            entity.getX() <= clientEntity.getX() + range &&
+            entity.getY() >= clientEntity.getY() - range &&
+            entity.getY() <= clientEntity.getY() + range,
         )
         .map((entity) => {
           return {
@@ -134,8 +165,8 @@ class State {
         _width: this.map.getWidth(),
         _height: this.map.getHeight(),
         _tiles: [],
-        _offsetX: clientEntity.getX() - 4,
-        _offsetY: clientEntity.getY() - 4,
+        _offsetX: clientEntity.getX() - range,
+        _offsetY: clientEntity.getY() - range,
       }
 
       for (let x = 0; x < 9; x++) {
@@ -215,6 +246,7 @@ function handleInput(state, clientId, keyCode) {
   }
 
   state.engine.unlock()
+  console.log(state.entities.length)
 }
 
 function getUpdatedVelocity(keyCode) {
