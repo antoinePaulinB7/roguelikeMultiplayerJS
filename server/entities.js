@@ -42,8 +42,6 @@ Mixins.PlayerMoveable = {
 
     if (target) {
       if (this.hasMixin('Attacker')) {
-        console.log(target)
-
         this.attack(target, state)
         return true
       } else {
@@ -128,6 +126,8 @@ Mixins.Destructible = {
   takeDamage: function (attacker, damage, state) {
     this._hp -= damage
     if (this._hp <= 0) {
+      state.sendMessage(attacker, 'You kill the %s!', [this.getName()])
+      state.sendMessage(this, 'You die!')
       state.removeEntity(this)
     }
   },
@@ -144,10 +144,22 @@ Mixins.Attacker = {
   },
   attack: function (target, state) {
     if (target.hasMixin('Destructible')) {
-      let damage = this.getAttackValue()
+      let attackValue = this.getAttackValue()
       let defense = target.getDefenseValue()
-      let max = Math.max(0, damage - defense)
-      target.takeDamage(this, 1 + Math.floor(Math.random() * max), state)
+      let max = Math.max(0, attackValue - defense)
+      let damage = 1 + Math.floor(Math.random() * max)
+
+      state.sendMessage(this, 'You strike the %s for %d damage!', [
+        target.getName(),
+        damage,
+      ])
+
+      state.sendMessage(target, 'The %s strikes you for %d damage!', [
+        this.getName(),
+        damage,
+      ])
+
+      target.takeDamage(this, damage, state)
     }
   },
 }
@@ -185,6 +197,12 @@ Mixins.FungusActor = {
             entity.setY(y)
             this._state.addEntity(entity)
             this._growthsRemaining--
+
+            this._state.sendMessageNearby(
+              entity.getX(),
+              entity.getY(),
+              'The fungus is spreading!',
+            )
           }
         }
       }
@@ -199,6 +217,7 @@ Mixins.MessageRecipient = {
   },
   receiveMessage: function (message) {
     this._messages.push(message)
+    console.log(this.getName(), message)
   },
   getMessages: function () {
     return this._messages
@@ -232,6 +251,7 @@ Entities.PlayerTemplate = (state) => {
       Mixins.ClientController,
       Mixins.Attacker,
       Mixins.Destructible,
+      Mixins.MessageRecipient,
     ],
     state: state,
   }
@@ -239,6 +259,7 @@ Entities.PlayerTemplate = (state) => {
 
 Entities.FungusTemplate = (state) => {
   return {
+    name: 'fungus',
     char: 'F',
     foreground: 'green',
     maxHp: 2,

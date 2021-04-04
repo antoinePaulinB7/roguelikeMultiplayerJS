@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "rot-js": "^2.1.5",
-    "socket.io": "^4.0.0"
+    "socket.io": "^4.0.0",
+    "sprintf-js": "^1.1.2"
   }
 }

@@ -12,10 +12,14 @@ body {
 canvas {
   /* border: 1px solid white; */
   /* flex-grow: 1; */
+  width: 100%;
   max-width: 100%;
   max-height: calc(100vh - calc(1.2 * 3.5rem));
 
   position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translateX(-50%) translateY(-50%);
 }
 
 .sidebar {

@@ -1,4 +1,4 @@
-const { GRID_SIZE } = require('./constants')
+const { MAP_WIDTH, MAP_HEIGHT } = require('./constants')
 
 const { Glyph } = require('./glyph')
 const { Tile } = require('./tile')
@@ -8,6 +8,9 @@ const { Entities, Mixins } = require('./entities')
 const ROT = require('rot-js')
 const { Entity } = require('./entity')
 const ServerMessages = require('./server-messages')
+
+const sprintf = require('sprintf-js').sprintf
+const vsprintf = require('sprintf-js').vsprintf
 
 module.exports = {
   initGame,
@@ -33,14 +36,14 @@ function joinGame(state, clientId) {
 
 function generateMap() {
   let map = []
-  for (let x = 0; x < 80; x++) {
+  for (let x = 0; x < MAP_WIDTH; x++) {
     map.push([])
-    for (let y = 0; y < 50; y++) {
+    for (let y = 0; y < MAP_HEIGHT; y++) {
       map[x].push(Tile.nullTile)
     }
   }
 
-  const generator = new ROT.Map.Cellular(80, 50)
+  const generator = new ROT.Map.Cellular(MAP_WIDTH, MAP_HEIGHT)
   generator.randomize(0.5)
   const totalIterations = 3
 
@@ -125,10 +128,35 @@ class State {
   sendMessage = (recipient, message, args) => {
     if (recipient.hasMixin('MessageRecipient')) {
       if (args) {
-        // message = format(message, args) // HERE (define format)
+        message = vsprintf(message, args)
       }
       recipient.receiveMessage(message)
     }
+  }
+
+  sendMessageNearby = (x, y, message, args) => {
+    if (args) {
+      message = vsprintf(message, args)
+    }
+
+    let entitiesNearby = this.getEntitiesWithin(x, y, 5)
+    for (let entity of entitiesNearby) {
+      if (entity.hasMixin('MessageRecipient')) {
+        entity.receiveMessage(message)
+      }
+    }
+  }
+
+  getEntitiesWithin = (x, y, range) => {
+    let entitiesWithin = this.entities.filter(
+      (entity) =>
+        entity.getX() >= x - range &&
+        entity.getX() <= x + range &&
+        entity.getY() >= y - range &&
+        entity.getY() <= y + range,
+    )
+
+    return entitiesWithin
   }
 
   getJSON = (clientId, range = 4) => {
@@ -143,23 +171,19 @@ class State {
         return ServerMessages.PLAYER_DIED
       }
 
-      let compressedEntities = this.entities
-        .filter(
-          (entity) =>
-            entity.getX() >= clientEntity.getX() - range &&
-            entity.getX() <= clientEntity.getX() + range &&
-            entity.getY() >= clientEntity.getY() - range &&
-            entity.getY() <= clientEntity.getY() + range,
-        )
-        .map((entity) => {
-          return {
-            _x: entity.getX(),
-            _y: entity.getY(),
-            _char: entity.getChar(),
-            _foreground: entity.getForeground(),
-            _background: entity.getBackground(),
-          }
-        })
+      let compressedEntities = this.getEntitiesWithin(
+        clientEntity.getX(),
+        clientEntity.getY(),
+        range,
+      ).map((entity) => {
+        return {
+          _x: entity.getX(),
+          _y: entity.getY(),
+          _char: entity.getChar(),
+          _foreground: entity.getForeground(),
+          _background: entity.getBackground(),
+        }
+      })
 
       let sectionedMap = {
         _width: this.map.getWidth(),

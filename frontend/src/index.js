@@ -19,8 +19,8 @@ var options = {
   tileSet: myImage,
   tileColorize: true,
   tileMap: Constants.tileMap,
-  width: 80,
-  height: 50,
+  width: Constants.mapWidth,
+  height: Constants.mapHeight,
 }
 
 var display = new ROT.Display(options)
