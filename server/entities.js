@@ -39,24 +39,20 @@ Mixins.PlayerMoveable = {
     y = this._y + y
     z = this._z + z
 
-    console.log(z)
-
-    let tile = state.map.getTile(x, y, z)
-    let target = state.getEntityAt(x, y, z)
+    let tile = state.map.getTile(x, y, this._z)
+    let target = state.getEntityAt(x, y, this._z)
     if (z < this.getZ()) {
-      if (tile != Tile.stairsDown) {
-        console.log(tile)
+      if (tile != Tile.stairsUp) {
         state.sendMessage(this, "You can't go up here!")
       } else {
-        state.sendMessage(this, 'You ascend to level %d!', [z + 1])
+        state.sendMessage(this, 'You ascend to level %s!', [z + 1])
         this.setPosition(x, y, z)
       }
     } else if (z > this.getZ()) {
-      if (tile != Tile.stairsUp) {
-        console.log(tile)
+      if (tile != Tile.stairsDown) {
         state.sendMessage(this, "You can't go down here!")
       } else {
-        state.sendMessage(this, 'You descend to level %d!', [z + 1])
+        state.sendMessage(this, 'You descend to level %s!', [z + 1])
         this.setPosition(x, y, z)
       }
     } else if (target) {
@@ -168,12 +164,12 @@ Mixins.Attacker = {
       let max = Math.max(0, attackValue - defense)
       let damage = 1 + Math.floor(Math.random() * max)
 
-      state.sendMessage(this, 'You strike the %s for %d damage!', [
+      state.sendMessage(this, 'You strike the %s for %s damage!', [
         target.getName(),
         damage,
       ])
 
-      state.sendMessage(target, 'The %s strikes you for %d damage!', [
+      state.sendMessage(target, 'The %s strikes you for %s damage!', [
         this.getName(),
         damage,
       ])

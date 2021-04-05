@@ -112,7 +112,8 @@ class State {
   sendMessage = (recipient, message, args) => {
     if (recipient.hasMixin('MessageRecipient')) {
       if (args) {
-        message = vsprintf(message, args)
+        console.log(...args)
+        message = ROT.Util.format(message, ...args)
       }
       recipient.receiveMessage(message)
     }
@@ -120,7 +121,8 @@ class State {
 
   sendMessageNearby = (x, y, z, message, args) => {
     if (args) {
-      message = vsprintf(message, args)
+      console.log(...args)
+      message = ROT.Util.format(message, ...args)
     }
 
     let entitiesNearby = this.getEntitiesWithin(x, y, z, 5)
@@ -237,8 +239,6 @@ function gameLoop(state) {
 }
 
 function handleInput(state, clientId, keyCode) {
-  console.log(keyCode)
-
   let player = state.entities
     .filter((entity) => entity.hasMixin('ClientController'))
     .find((entity) => entity.getClientId() == clientId)
@@ -267,8 +267,6 @@ function handleInput(state, clientId, keyCode) {
   }
 
   state.engine.unlock()
-  console.log(state.entities.length)
-  console.log(Utils.getNeighborPositions(player.getX(), player.getY()))
 }
 
 function getUpdatedVelocity(keyCode) {
