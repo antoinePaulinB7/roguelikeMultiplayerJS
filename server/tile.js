@@ -26,6 +26,18 @@ Tile.wallTile = new Tile({
   isDiggable: true,
 })
 
+Tile.stairsUp = new Tile({
+  char: '<',
+  foreground: 'white',
+  isWalkable: true,
+})
+
+Tile.stairsDown = new Tile({
+  char: '>',
+  foreground: 'white',
+  isWalkable: true,
+})
+
 module.exports = {
   Tile,
 }

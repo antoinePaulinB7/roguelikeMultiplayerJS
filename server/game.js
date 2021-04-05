@@ -9,6 +9,8 @@ const ROT = require('rot-js')
 const { Entity } = require('./entity')
 const ServerMessages = require('./server-messages')
 
+const { randomize } = require('./utils')
+
 const sprintf = require('sprintf-js').sprintf
 const vsprintf = require('sprintf-js').vsprintf
 
@@ -147,6 +149,17 @@ class State {
     }
   }
 
+  getNeighborPositions = (x, y) => {
+    let tiles = []
+    let dirs = ROT.DIRS[8]
+
+    for (let dir of dirs) {
+      tiles.push({ x: x + dir[0], y: y + dir[1] })
+    }
+
+    return randomize(tiles)
+  }
+
   getEntitiesWithin = (x, y, range) => {
     let entitiesWithin = this.entities.filter(
       (entity) =>
@@ -271,6 +284,7 @@ function handleInput(state, clientId, keyCode) {
 
   state.engine.unlock()
   console.log(state.entities.length)
+  console.log(state.getNeighborPositions(player.getX(), player.getY()))
 }
 
 function getUpdatedVelocity(keyCode) {
