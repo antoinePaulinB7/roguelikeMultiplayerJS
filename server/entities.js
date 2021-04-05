@@ -1,4 +1,5 @@
 const { Entity } = require('./entity')
+const { Tile } = require('./tile')
 
 class Mixins {}
 
@@ -33,14 +34,32 @@ Mixins.Moveable = {
 Mixins.PlayerMoveable = {
   name: 'PlayerMoveable',
   groupName: 'Moveable',
-  tryMove: function (x, y, state) {
+  tryMove: function (x, y, z, state) {
     x = this._x + x
     y = this._y + y
+    z = this._z + z
 
-    let tile = state.map.getTile(x, y)
-    let target = state.getEntityAt(x, y)
+    console.log(z)
 
-    if (target) {
+    let tile = state.map.getTile(x, y, z)
+    let target = state.getEntityAt(x, y, z)
+    if (z < this.getZ()) {
+      if (tile != Tile.stairsDown) {
+        console.log(tile)
+        state.sendMessage(this, "You can't go up here!")
+      } else {
+        state.sendMessage(this, 'You ascend to level %d!', [z + 1])
+        this.setPosition(x, y, z)
+      }
+    } else if (z > this.getZ()) {
+      if (tile != Tile.stairsUp) {
+        console.log(tile)
+        state.sendMessage(this, "You can't go down here!")
+      } else {
+        state.sendMessage(this, 'You descend to level %d!', [z + 1])
+        this.setPosition(x, y, z)
+      }
+    } else if (target) {
       if (this.hasMixin('Attacker')) {
         this.attack(target, state)
         return true
@@ -52,7 +71,7 @@ Mixins.PlayerMoveable = {
       this._y = y
       return true
     } else if (tile.isDiggable()) {
-      state.map.dig(x, y)
+      state.map.dig(x, y, z)
       return true
     }
     return false
@@ -191,10 +210,11 @@ Mixins.FungusActor = {
         if (xOffset != 0 || yOffset != 0) {
           let x = this.getX() + xOffset
           let y = this.getY() + yOffset
-          if (this._state.isEmptyFloor(x, y)) {
+
+          if (this._state.isEmptyFloor(x, y, this.getZ())) {
             let entity = new Entity(Entities.FungusTemplate(this._state))
-            entity.setX(x)
-            entity.setY(y)
+            entity.setPosition(x, y, this.getZ())
+
             this._state.addEntity(entity)
             this._growthsRemaining--
 

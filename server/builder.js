@@ -1,5 +1,5 @@
 const ROT = require('rot-js')
-const Tile = require('./tile')
+const { Tile } = require('./tile')
 const Utils = require('./utils')
 
 class Builder {
@@ -7,18 +7,18 @@ class Builder {
     this._width = width
     this._height = height
     this._depth = depth
-    this._tiles = new Array(depth)
-    this._regions = new Array(depth)
+    this._tiles = []
+    this._regions = []
 
     for (let z = 0; z < depth; z++) {
-      this._tiles[z] = this.generateLevel()
-      this._regions[z] = new Array(width)
+      this._tiles.push(this.generateLevel())
+      this._regions.push([])
 
       for (let x = 0; x < width; x++) {
-        this._regions[z][x] = new Array(height)
+        this._regions[z].push([])
 
         for (let y = 0; y < height; y++) {
-          this._regions[z][x][y] = 0
+          this._regions[z][x].push(0)
         }
       }
     }
@@ -27,6 +27,22 @@ class Builder {
       this.setupRegions(z)
     }
     this.connectAllRegions()
+  }
+
+  getTiles = () => {
+    return this._tiles
+  }
+
+  getDepth = () => {
+    return this._depth
+  }
+
+  getWidth = () => {
+    return this._width
+  }
+
+  getHeight = () => {
+    return this._height
   }
 
   canFillRegion = (x, y, z) => {
@@ -120,7 +136,7 @@ class Builder {
       }
     }
 
-    return matches.randomize()
+    return Utils.randomize(matches)
   }
 
   connectRegions = (z, r1, r2) => {
@@ -164,13 +180,15 @@ class Builder {
   }
 
   generateLevel = () => {
-    let map = new Array(this._width)
-
-    for (let i = 0; i < map.length; i++) {
-      map[i] = new Array(this._height)
+    let map = []
+    for (let x = 0; x < this._width; x++) {
+      map.push([])
+      for (let y = 0; y < this._height; y++) {
+        map[x].push(Tile.nullTile)
+      }
     }
 
-    const generator = new ROT.Map.Cellular(MAP_WIDTH, MAP_HEIGHT)
+    const generator = new ROT.Map.Cellular(this._width, this._height)
     generator.randomize(0.5)
     const totalIterations = 3
 
@@ -179,7 +197,7 @@ class Builder {
     }
 
     function callback(x, y, v) {
-      if (v === 1) {
+      if (v == 1) {
         map[x][y] = Tile.floorTile
       } else {
         map[x][y] = Tile.wallTile
@@ -188,8 +206,10 @@ class Builder {
 
     generator.create(callback)
 
-    // here
-
     return map
   }
+}
+
+module.exports = {
+  Builder,
 }

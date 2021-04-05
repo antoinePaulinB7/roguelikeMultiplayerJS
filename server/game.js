@@ -7,6 +7,7 @@ const { Entities, Mixins } = require('./entities')
 
 const ROT = require('rot-js')
 const { Entity } = require('./entity')
+const { Builder } = require('./builder')
 const ServerMessages = require('./server-messages')
 
 const Utils = require('./utils')
@@ -33,54 +34,30 @@ function joinGame(state, clientId) {
   let player = new Entity(properties)
   player.setName('Player 2')
 
-  state.addEntityAtRandomPosition(player)
-}
-
-function generateMap() {
-  let map = []
-  for (let x = 0; x < MAP_WIDTH; x++) {
-    map.push([])
-    for (let y = 0; y < MAP_HEIGHT; y++) {
-      map[x].push(Tile.nullTile)
-    }
-  }
-
-  const generator = new ROT.Map.Cellular(MAP_WIDTH, MAP_HEIGHT)
-  generator.randomize(0.5)
-  const totalIterations = 3
-
-  for (let i = 0; i < totalIterations - 1; i++) {
-    generator.create()
-  }
-
-  function callback(x, y, v) {
-    if (v === 1) {
-      map[x][y] = Tile.floorTile
-    } else {
-      map[x][y] = Tile.wallTile
-    }
-  }
-
-  generator.create(callback)
-
-  return new Map(map)
+  state.addEntityAtRandomPosition(player, 0)
 }
 
 class State {
   constructor() {
-    this.map = generateMap()
+    this.builder = new Builder(MAP_WIDTH, MAP_HEIGHT, 3)
+    this.map = new Map(this.builder.getTiles())
     this.entities = []
     this.scheduler = new ROT.Scheduler.Simple()
     this.engine = new ROT.Engine(this.scheduler)
 
-    for (let i = 0; i < 10; i++) {
-      this.addEntityAtRandomPosition(new Entity(Entities.FungusTemplate(this)))
+    for (let z = 0; z < this.map.getDepth(); z++) {
+      for (let i = 0; i < 10; i++) {
+        this.addEntityAtRandomPosition(
+          new Entity(Entities.FungusTemplate(this)),
+          z,
+        )
+      }
     }
   }
 
-  getEntityAt = (x, y) => {
+  getEntityAt = (x, y, z) => {
     for (let entity of this.entities) {
-      if (entity.getX() == x && entity.getY() == y) {
+      if (entity.getX() == x && entity.getY() == y && entity.getZ() == z) {
         return entity
       }
     }
@@ -88,8 +65,10 @@ class State {
     return null
   }
 
-  isEmptyFloor = (x, y) => {
-    return this.map.getTile(x, y) == Tile.floorTile && !this.getEntityAt(x, y)
+  isEmptyFloor = (x, y, z) => {
+    return (
+      this.map.getTile(x, y, z) == Tile.floorTile && !this.getEntityAt(x, y, z)
+    )
   }
 
   addEntity = (entity) => {
@@ -97,7 +76,9 @@ class State {
       entity.getX() < 0 ||
       entity.getX() >= this.map.getWidth() ||
       entity.getY() < 0 ||
-      entity.getY() >= this.map.getHeight()
+      entity.getY() >= this.map.getHeight() ||
+      entity.getZ() < 0 ||
+      entity.getZ() >= this.map.getDepth()
     ) {
       throw new Error('Adding entity out of bounds.')
     }
@@ -120,10 +101,11 @@ class State {
     }
   }
 
-  addEntityAtRandomPosition = (entity) => {
-    let { x, y } = this.map.getRandomFloorPosition(this)
+  addEntityAtRandomPosition = (entity, z) => {
+    let { x, y } = this.map.getRandomFloorPosition(this, z)
     entity.setX(x)
     entity.setY(y)
+    entity.setZ(z)
     this.addEntity(entity)
   }
 
@@ -136,12 +118,12 @@ class State {
     }
   }
 
-  sendMessageNearby = (x, y, message, args) => {
+  sendMessageNearby = (x, y, z, message, args) => {
     if (args) {
       message = vsprintf(message, args)
     }
 
-    let entitiesNearby = this.getEntitiesWithin(x, y, 5)
+    let entitiesNearby = this.getEntitiesWithin(x, y, z, 5)
     for (let entity of entitiesNearby) {
       if (entity.hasMixin('MessageRecipient')) {
         entity.receiveMessage(message)
@@ -149,13 +131,14 @@ class State {
     }
   }
 
-  getEntitiesWithin = (x, y, range) => {
+  getEntitiesWithin = (x, y, z, range) => {
     let entitiesWithin = this.entities.filter(
       (entity) =>
         entity.getX() >= x - range &&
         entity.getX() <= x + range &&
         entity.getY() >= y - range &&
-        entity.getY() <= y + range,
+        entity.getY() <= y + range &&
+        entity.getZ() == z,
     )
 
     return entitiesWithin
@@ -176,6 +159,7 @@ class State {
       let compressedEntities = this.getEntitiesWithin(
         clientEntity.getX(),
         clientEntity.getY(),
+        clientEntity.getZ(),
         range,
       ).map((entity) => {
         return {
@@ -202,6 +186,7 @@ class State {
             this.map.getTile(
               x + sectionedMap._offsetX,
               y + sectionedMap._offsetY,
+              clientEntity.getZ(),
             ),
           )
         }
@@ -234,7 +219,7 @@ function createGameState(clientId) {
   let player = new Entity(properties)
   player.setName('Player 1')
 
-  state.addEntityAtRandomPosition(player)
+  state.addEntityAtRandomPosition(player, 0)
 
   state.engine.start()
 
@@ -252,22 +237,32 @@ function gameLoop(state) {
 }
 
 function handleInput(state, clientId, keyCode) {
+  console.log(keyCode)
+
   let player = state.entities
     .filter((entity) => entity.hasMixin('ClientController'))
     .find((entity) => entity.getClientId() == clientId)
 
   switch (keyCode) {
     case ROT.KEYS.VK_LEFT:
-      player.tryMove(-1, 0, state)
+      player.tryMove(-1, 0, 0, state)
       break
     case ROT.KEYS.VK_RIGHT:
-      player.tryMove(1, 0, state)
+      player.tryMove(1, 0, 0, state)
       break
     case ROT.KEYS.VK_UP:
-      player.tryMove(0, -1, state)
+      player.tryMove(0, -1, 0, state)
       break
     case ROT.KEYS.VK_DOWN:
-      player.tryMove(0, 1, state)
+      player.tryMove(0, 1, 0, state)
+      break
+    case ROT.KEYS.VK_GREATER_THAN:
+      console.log('>')
+      player.tryMove(0, 0, 1, state)
+      break
+    case ROT.KEYS.VK_LESS_THAN:
+      console.log('<')
+      player.tryMove(0, 0, -1, state)
       break
   }
 

@@ -7,6 +7,7 @@ class Entity extends Glyph {
     this._name = properties['name'] || ''
     this._x = properties['x'] || 0
     this._y = properties['y'] || 0
+    this._z = properties['z'] || 0
 
     this._attachedMixins = {}
     this._attachedMixinGroups = {}
@@ -35,10 +36,18 @@ class Entity extends Glyph {
   setName = (name) => (this._name = name)
   setX = (value) => (this._x = value)
   setY = (value) => (this._y = value)
+  setZ = (value) => (this._z = value)
 
   getName = () => this._name
   getX = () => this._x
   getY = () => this._y
+  getZ = () => this._z
+
+  setPosition = (x, y, z) => {
+    this._x = x
+    this._y = y
+    this._z = z
+  }
 
   hasMixin = (mixin) => {
     if (typeof mixin === 'object') {

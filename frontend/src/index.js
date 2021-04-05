@@ -11,6 +11,12 @@ const myImage = new Image()
 
 myImage.src = tilesheet
 
+var fontOptions = {
+  bg: 'black',
+  width: Constants.mapWidth,
+  height: Constants.mapHeight,
+}
+
 var options = {
   layout: 'tile-gl',
   bg: 'transparent',
@@ -135,11 +141,16 @@ function init() {
   gameScreen.style.display = 'block'
 
   document.addEventListener('keydown', keydown)
+  document.addEventListener('keypress', keypress)
   gameActive = true
 }
 
 function keydown(event) {
   socket.emit('keydown', event.keyCode)
+}
+
+function keypress(event) {
+  socket.emit('keypress', event.charCode)
 }
 
 function clearDisplay() {

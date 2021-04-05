@@ -13,7 +13,8 @@ const state = {}
 const clientRooms = {}
 
 io.on('connection', (client) => {
-  client.on('keydown', handleKeydown)
+  client.on('keydown', handleKeypress)
+  client.on('keypress', handleKeypress)
   client.on('newGame', handleNewGame)
   client.on('joinGame', handleJoinGame)
 
@@ -65,7 +66,7 @@ io.on('connection', (client) => {
     startGameInterval(roomName)
   }
 
-  function handleKeydown(keyCode) {
+  function handleKeypress(keyCode) {
     // let time = Date.now()
 
     const roomName = clientRooms[client.id]
