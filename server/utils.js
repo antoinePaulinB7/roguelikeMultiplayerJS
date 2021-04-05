@@ -1,6 +1,9 @@
+const ROT = require('rot-js')
+
 module.exports = {
   makeid,
   randomize,
+  getNeighborPositions,
 }
 
 function makeid(length) {
@@ -25,4 +28,15 @@ function randomize(array) {
     ret[i] = t
   }
   return ret
+}
+
+function getNeighborPositions(x, y) {
+  let tiles = []
+  let dirs = ROT.DIRS[8]
+
+  for (let dir of dirs) {
+    tiles.push({ x: x + dir[0], y: y + dir[1] })
+  }
+
+  return randomize(tiles)
 }
