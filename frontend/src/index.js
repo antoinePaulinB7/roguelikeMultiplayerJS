@@ -12,7 +12,7 @@ const myImage = new Image()
 myImage.src = tilesheet
 
 var fontOptions = {
-  bg: 'black',
+  bg: 'transparent',
   width: Constants.mapWidth,
   height: Constants.mapHeight,
 }
@@ -29,11 +29,12 @@ var options = {
   height: Constants.mapHeight,
 }
 
-var display = new ROT.Display(options)
+var display = new ROT.Display(fontOptions)
 
+fontOptions.bg = '#030303'
 options.bg = '#030303'
 
-var backgroundDisplay = new ROT.Display(options)
+var backgroundDisplay = new ROT.Display(fontOptions)
 
 window.display = display
 
