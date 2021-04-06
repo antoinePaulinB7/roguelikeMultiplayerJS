@@ -12,9 +12,6 @@ const ServerMessages = require('./server-messages')
 
 const Utils = require('./utils')
 
-const sprintf = require('sprintf-js').sprintf
-const vsprintf = require('sprintf-js').vsprintf
-
 module.exports = {
   initGame,
   joinGame,
@@ -98,6 +95,7 @@ class State {
     }
 
     if (entity.hasMixin('ClientController')) {
+      // handle disconnection ?
     }
   }
 
