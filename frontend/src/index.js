@@ -29,12 +29,12 @@ var options = {
   height: Constants.mapHeight,
 }
 
-var display = new ROT.Display(fontOptions)
+var display = new ROT.Display(options)
 
 fontOptions.bg = '#030303'
 options.bg = '#030303'
 
-var backgroundDisplay = new ROT.Display(fontOptions)
+var backgroundDisplay = new ROT.Display(options)
 
 window.display = display
 
@@ -171,20 +171,22 @@ function paintGame(state) {
 
   for (let x = 0; x < map._tiles.length; x++) {
     for (let y = 0; y < map._tiles[x].length; y++) {
-      backgroundDisplay.draw(
-        x + (map._offsetX || 0),
-        y + (map._offsetY || 0),
-        map._tiles[x][y]._char,
-        '#222222',
-        'transparent',
-      )
-      display.draw(
-        x + (map._offsetX || 0),
-        y + (map._offsetY || 0),
-        map._tiles[x][y]._char,
-        map._tiles[x][y]._foreground,
-        map._tiles[x][y]._background,
-      )
+      if (map._tiles[x][y]) {
+        backgroundDisplay.draw(
+          x + (map._offsetX || 0),
+          y + (map._offsetY || 0),
+          map._tiles[x][y]._char,
+          '#222222',
+          'transparent',
+        )
+        display.draw(
+          x + (map._offsetX || 0),
+          y + (map._offsetY || 0),
+          map._tiles[x][y]._char,
+          map._tiles[x][y]._foreground,
+          map._tiles[x][y]._background,
+        )
+      }
     }
   }
 

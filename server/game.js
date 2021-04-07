@@ -156,20 +156,37 @@ class State {
         return ServerMessages.PLAYER_DIED
       }
 
+      range = clientEntity.getSightRadius()
+
+      let visibleCells = {}
+
+      this.map
+        .getFov(clientEntity.getZ())
+        .compute(
+          clientEntity.getX(),
+          clientEntity.getY(),
+          range,
+          function (x, y, radius, visibility) {
+            visibleCells[x + ',' + y] = true
+          },
+        )
+
       let compressedEntities = this.getEntitiesWithin(
         clientEntity.getX(),
         clientEntity.getY(),
         clientEntity.getZ(),
         range,
-      ).map((entity) => {
-        return {
-          _x: entity.getX(),
-          _y: entity.getY(),
-          _char: entity.getChar(),
-          _foreground: entity.getForeground(),
-          _background: entity.getBackground(),
-        }
-      })
+      )
+        .filter((entity) => visibleCells[entity.getX() + ',' + entity.getY()])
+        .map((entity) => {
+          return {
+            _x: entity.getX(),
+            _y: entity.getY(),
+            _char: entity.getChar(),
+            _foreground: entity.getForeground(),
+            _background: entity.getBackground(),
+          }
+        })
 
       let sectionedMap = {
         _width: this.map.getWidth(),
@@ -179,16 +196,24 @@ class State {
         _offsetY: clientEntity.getY() - range,
       }
 
-      for (let x = 0; x < 9; x++) {
+      for (let x = 0; x < 2 * range + 1; x++) {
         sectionedMap._tiles.push([])
-        for (let y = 0; y < 9; y++) {
-          sectionedMap._tiles[x].push(
-            this.map.getTile(
-              x + sectionedMap._offsetX,
-              y + sectionedMap._offsetY,
-              clientEntity.getZ(),
-            ),
-          )
+        for (let y = 0; y < 2 * range + 1; y++) {
+          if (
+            visibleCells[
+              `${x + sectionedMap._offsetX},${y + sectionedMap._offsetY}`
+            ]
+          ) {
+            sectionedMap._tiles[x].push(
+              this.map.getTile(
+                x + sectionedMap._offsetX,
+                y + sectionedMap._offsetY,
+                clientEntity.getZ(),
+              ),
+            )
+          } else {
+            sectionedMap._tiles[x].push(null)
+          }
         }
       }
 

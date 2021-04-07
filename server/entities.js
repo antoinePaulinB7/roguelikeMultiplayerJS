@@ -179,6 +179,17 @@ Mixins.Attacker = {
   },
 }
 
+Mixins.Sight = {
+  name: 'Sight',
+  groupName: 'Sight',
+  init: function (properties) {
+    this._sightRadius = properties['sightRadius'] || 5
+  },
+  getSightRadius: function () {
+    return this._sightRadius
+  },
+}
+
 Mixins.PlayerActor = {
   name: 'PlayerActor',
   groupName: 'Actor',
@@ -267,6 +278,7 @@ Entities.PlayerTemplate = (state) => {
       Mixins.ClientController,
       Mixins.Attacker,
       Mixins.Destructible,
+      Mixins.Sight,
       Mixins.MessageRecipient,
     ],
     state: state,

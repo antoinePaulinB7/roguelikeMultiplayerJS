@@ -1,4 +1,5 @@
 const { Tile } = require('./tile')
+const ROT = require('rot-js')
 
 class Map {
   constructor(tiles) {
@@ -7,6 +8,8 @@ class Map {
     this._depth = tiles.length
     this._width = tiles[0].length
     this._height = tiles[0][0].length
+    this._fov = []
+    this.setupFov()
   }
 
   getWidth = () => this._width
@@ -40,6 +43,27 @@ class Map {
   dig = (x, y, z) => {
     if (this.getTile(x, y, z).isDiggable()) {
       this._tiles[z][x][y] = Tile.floorTile
+    }
+  }
+
+  getFov = (depth) => {
+    return this._fov[depth]
+  }
+
+  setupFov = () => {
+    let map = this
+    for (let z = 0; z < this._depth; z++) {
+      ;(function () {
+        let depth = z
+        map._fov.push(
+          new ROT.FOV.DiscreteShadowcasting(
+            (x, y) => {
+              return !map.getTile(x, y, depth).isBlockingLight()
+            },
+            { topology: 4 },
+          ),
+        )
+      })()
     }
   }
 }
