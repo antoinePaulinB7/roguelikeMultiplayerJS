@@ -1,18 +1,39 @@
 const { Entity } = require('./entity')
 const { Tile } = require('./tile')
+const ROT = require('rot-js')
+const { randomize } = require('./utils')
 
 class Mixins {}
 
 Mixins.Moveable = {
   name: 'Moveable',
-  tryMove: function (x, y, state) {
+  tryMove: function (x, y, z, state) {
     x = this._x + x
     y = this._y + y
+    z = this._z + z
 
-    let tile = state.map.getTile(x, y)
-    let target = state.getEntityAt(x, y)
+    let tile = state.map.getTile(x, y, this._z)
+    let target = state.getEntityAt(x, y, this._z)
 
-    if (target) {
+    if (z < this.getZ()) {
+      if (tile != Tile.stairsUp) {
+        state.sendMessage(this, "You can't go up here!")
+        return false
+      } else {
+        state.sendMessage(this, 'You ascend to level %s!', [z + 1])
+        this.setPosition(state, x, y, z)
+        return true
+      }
+    } else if (z > this.getZ()) {
+      if (tile != Tile.stairsDown) {
+        state.sendMessage(this, "You can't go down here!")
+        return false
+      } else {
+        state.sendMessage(this, 'You descend to level %s!', [z + 1])
+        this.setPosition(state, x, y, z)
+        return true
+      }
+    } else if (target) {
       if (this.hasMixin('Attacker')) {
         this.attack(target, state)
         return true
@@ -20,13 +41,10 @@ Mixins.Moveable = {
         return false
       }
     } else if (tile.isWalkable()) {
-      this._x = x
-      this._y = y
-      return true
-    } else if (tile.isDiggable()) {
-      state.map.dig(x, y)
+      this.setPosition(state, x, y, this.getZ())
       return true
     }
+
     return false
   },
 }
@@ -41,19 +59,24 @@ Mixins.PlayerMoveable = {
 
     let tile = state.map.getTile(x, y, this._z)
     let target = state.getEntityAt(x, y, this._z)
+
     if (z < this.getZ()) {
       if (tile != Tile.stairsUp) {
         state.sendMessage(this, "You can't go up here!")
+        return false
       } else {
         state.sendMessage(this, 'You ascend to level %s!', [z + 1])
-        this.setPosition(x, y, z)
+        this.setPosition(state, x, y, z)
+        return true
       }
     } else if (z > this.getZ()) {
       if (tile != Tile.stairsDown) {
         state.sendMessage(this, "You can't go down here!")
+        return false
       } else {
         state.sendMessage(this, 'You descend to level %s!', [z + 1])
-        this.setPosition(x, y, z)
+        this.setPosition(state, x, y, z)
+        return true
       }
     } else if (target) {
       if (this.hasMixin('Attacker')) {
@@ -63,13 +86,13 @@ Mixins.PlayerMoveable = {
         return false
       }
     } else if (tile.isWalkable()) {
-      this._x = x
-      this._y = y
+      this.setPosition(state, x, y, this.getZ())
       return true
     } else if (tile.isDiggable()) {
       state.map.dig(x, y, z)
       return true
     }
+
     return false
   },
 }
@@ -193,11 +216,16 @@ Mixins.Sight = {
 Mixins.PlayerActor = {
   name: 'PlayerActor',
   groupName: 'Actor',
+  // queuedActions: [],
   init: function (properties) {
     this._engine = properties['state'].engine
   },
   act: function () {
+    // console.log('lock')
     this._engine.lock()
+    // if (this.queuedActions.length) {
+    //   this.queuedActions.pop()()
+    // }
   },
 }
 
@@ -206,7 +234,7 @@ Mixins.FungusActor = {
   groupName: 'Actor',
   init: function (properties) {
     this._growthsRemaining = 5
-    this._state = properties['state']
+    this._state = properties['state'] || this._state
   },
   act: function () {
     if (this._growthsRemaining > 0) {
@@ -220,7 +248,9 @@ Mixins.FungusActor = {
 
           if (this._state.isEmptyFloor(x, y, this.getZ())) {
             let entity = new Entity(Entities.FungusTemplate(this._state))
-            entity.setPosition(x, y, this.getZ())
+            entity.setX(x)
+            entity.setY(y)
+            entity.setZ(this.getZ())
 
             this._state.addEntity(entity)
             this._growthsRemaining--
@@ -234,6 +264,18 @@ Mixins.FungusActor = {
         }
       }
     }
+  },
+}
+
+Mixins.WanderActor = {
+  name: 'WanderActor',
+  groupName: 'Actor',
+  init: function (properties) {
+    this._state = properties['state'] || this._state
+  },
+  act: function () {
+    let [x, y] = randomize(ROT.DIRS[4])[0]
+    this.tryMove(x, y, 0, this._state)
   },
 }
 
@@ -292,6 +334,40 @@ Entities.FungusTemplate = (state) => {
     foreground: 'green',
     maxHp: 2,
     mixins: [Mixins.FungusActor, Mixins.Destructible],
+    state: state,
+  }
+}
+
+Entities.BatTemplate = (state) => {
+  return {
+    name: 'bat',
+    char: 'B',
+    foreground: 'purple',
+    maxHp: 5,
+    attackValue: 4,
+    mixins: [
+      Mixins.Moveable,
+      Mixins.WanderActor,
+      Mixins.Attacker,
+      Mixins.Destructible,
+    ],
+    state: state,
+  }
+}
+
+Entities.NewtTemplate = (state) => {
+  return {
+    name: 'newt',
+    char: ':',
+    foreground: 'yellow',
+    maxHp: 3,
+    attackValue: 2,
+    mixins: [
+      Mixins.Moveable,
+      Mixins.WanderActor,
+      Mixins.Attacker,
+      Mixins.Destructible,
+    ],
     state: state,
   }
 }

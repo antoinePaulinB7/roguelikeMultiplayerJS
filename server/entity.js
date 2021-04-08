@@ -43,10 +43,16 @@ class Entity extends Glyph {
   getY = () => this._y
   getZ = () => this._z
 
-  setPosition = (x, y, z) => {
+  setPosition = (state, x, y, z) => {
+    let oldX = this._x
+    let oldY = this._y
+    let oldZ = this._z
+
     this._x = x
     this._y = y
     this._z = z
+
+    state.updateEntityPosition(this, oldX, oldY, oldZ)
   }
 
   hasMixin = (mixin) => {

@@ -214,6 +214,8 @@ function handleGameState(gameState) {
 
   gameState = JSON.parse(gameState)
 
+  window.gameState = gameState
+
   requestAnimationFrame(() => paintGame(gameState))
 }
 

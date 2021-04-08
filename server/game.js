@@ -38,14 +38,20 @@ class State {
   constructor() {
     this.builder = new Builder(MAP_WIDTH, MAP_HEIGHT, 3)
     this.map = new Map(this.builder.getTiles())
-    this.entities = []
+    this.entities = {}
     this.scheduler = new ROT.Scheduler.Simple()
     this.engine = new ROT.Engine(this.scheduler)
+
+    let templates = [
+      Entities.FungusTemplate(this),
+      Entities.BatTemplate(this),
+      Entities.NewtTemplate(this),
+    ]
 
     for (let z = 0; z < this.map.getDepth(); z++) {
       for (let i = 0; i < 10; i++) {
         this.addEntityAtRandomPosition(
-          new Entity(Entities.FungusTemplate(this)),
+          new Entity(templates[Math.floor(Math.random() * templates.length)]),
           z,
         )
       }
@@ -53,13 +59,7 @@ class State {
   }
 
   getEntityAt = (x, y, z) => {
-    for (let entity of this.entities) {
-      if (entity.getX() == x && entity.getY() == y && entity.getZ() == z) {
-        return entity
-      }
-    }
-
-    return null
+    return this.entities[`${x},${y},${z}`]
   }
 
   isEmptyFloor = (x, y, z) => {
@@ -69,18 +69,7 @@ class State {
   }
 
   addEntity = (entity) => {
-    if (
-      entity.getX() < 0 ||
-      entity.getX() >= this.map.getWidth() ||
-      entity.getY() < 0 ||
-      entity.getY() >= this.map.getHeight() ||
-      entity.getZ() < 0 ||
-      entity.getZ() >= this.map.getDepth()
-    ) {
-      throw new Error('Adding entity out of bounds.')
-    }
-
-    this.entities.push(entity)
+    this.updateEntityPosition(entity)
 
     if (entity.hasMixin('Actor')) {
       this.scheduler.add(entity, true)
@@ -88,7 +77,11 @@ class State {
   }
 
   removeEntity = (entity) => {
-    this.entities = this.entities.filter((en) => en != entity)
+    let key = `${entity.getX()},${entity.getY()},${entity.getZ()}`
+
+    if (this.entities[key] == entity) {
+      delete this.entities[key]
+    }
 
     if (entity.hasMixin('Actor')) {
       this.scheduler.remove(entity)
@@ -110,7 +103,7 @@ class State {
   sendMessage = (recipient, message, args) => {
     if (recipient.hasMixin('MessageRecipient')) {
       if (args) {
-        console.log(...args)
+        // console.log(...args)
         message = ROT.Util.format(message, ...args)
       }
       recipient.receiveMessage(message)
@@ -119,7 +112,7 @@ class State {
 
   sendMessageNearby = (x, y, z, message, args) => {
     if (args) {
-      console.log(...args)
+      // console.log(...args)
       message = ROT.Util.format(message, ...args)
     }
 
@@ -131,8 +124,37 @@ class State {
     }
   }
 
+  updateEntityPosition(entity, oldX, oldY, oldZ) {
+    if (oldX != undefined) {
+      let oldKey = `${oldX},${oldY},${oldZ}`
+      if (this.entities[oldKey] == entity) {
+        delete this.entities[oldKey]
+      }
+    }
+
+    if (
+      entity.getX() < 0 ||
+      entity.getX() >= this.map.getWidth() ||
+      entity.getY() < 0 ||
+      entity.getY() >= this.map.getHeight() ||
+      entity.getZ() < 0 ||
+      entity.getZ() >= this.map.getDepth()
+    ) {
+      console.log(entity)
+      throw new Error('Entity position out of bounds.')
+    }
+
+    let key = `${entity.getX()},${entity.getY()},${entity.getZ()}`
+    if (this.entities[key]) {
+      console.log(key)
+      throw new Error('Tried to add an entity at an occupied position.')
+    }
+
+    this.entities[key] = entity
+  }
+
   getEntitiesWithin = (x, y, z, range) => {
-    let entitiesWithin = this.entities.filter(
+    let entitiesWithin = Object.values(this.entities).filter(
       (entity) =>
         entity.getX() >= x - range &&
         entity.getX() <= x + range &&
@@ -146,7 +168,7 @@ class State {
 
   getJSON = (clientId, range = 4) => {
     if (clientId) {
-      let clientEntity = this.entities.find(
+      let clientEntity = Object.values(this.entities).find(
         (entity) =>
           entity.hasMixin('ClientController') &&
           entity.getClientId() == clientId,
@@ -219,7 +241,7 @@ class State {
 
       return JSON.stringify({ map: sectionedMap, entities: compressedEntities })
     } else {
-      let compressedEntities = this.entities.map((entity) => {
+      let compressedEntities = Object.values(this.entities).map((entity) => {
         return {
           _x: entity.getX(),
           _y: entity.getY(),
@@ -262,7 +284,7 @@ function gameLoop(state) {
 }
 
 function handleInput(state, clientId, keyCode) {
-  let player = state.entities
+  let player = Object.values(state.entities)
     .filter((entity) => entity.hasMixin('ClientController'))
     .find((entity) => entity.getClientId() == clientId)
 
