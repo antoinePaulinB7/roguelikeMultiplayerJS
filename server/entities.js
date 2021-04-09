@@ -64,6 +64,8 @@ Mixins.PlayerMoveable = {
       if (tile != Tile.stairsUp) {
         state.sendMessage(this, "You can't go up here!")
         return false
+      } else if (state.getEntityAt(x, y, z)) {
+        state.sendMessage(this, "You can't go up here! Space is occupied")
       } else {
         state.sendMessage(this, 'You ascend to level %s!', [z + 1])
         this.setPosition(state, x, y, z)
@@ -73,6 +75,8 @@ Mixins.PlayerMoveable = {
       if (tile != Tile.stairsDown) {
         state.sendMessage(this, "You can't go down here!")
         return false
+      } else if (state.getEntityAt(x, y, z)) {
+        state.sendMessage(this, "You can't go down here! Space is occupied")
       } else {
         state.sendMessage(this, 'You descend to level %s!', [z + 1])
         this.setPosition(state, x, y, z)
