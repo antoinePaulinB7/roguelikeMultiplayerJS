@@ -39,6 +39,7 @@ class State {
     this.builder = new Builder(MAP_WIDTH, MAP_HEIGHT, 3)
     this.map = new Map(this.builder.getTiles())
     this.entities = {}
+    this.items = {}
     this.scheduler = new ROT.Scheduler.Simple()
     this.engine = new ROT.Engine(this.scheduler)
 
@@ -60,6 +61,35 @@ class State {
 
   getEntityAt = (x, y, z) => {
     return this.entities[`${x},${y},${z}`]
+  }
+
+  getItemsAt = (x, y, z) => {
+    return this.items[`${x},${y},${z}`]
+  }
+
+  setItemsAt = (x, y, z, itemList) => {
+    let key = `${x},${y},${z}`
+    if (itemList.length === 0) {
+      if (this.items[key]) {
+        delete this.items[key]
+      }
+    } else {
+      this.items[key] = itemList
+    }
+  }
+
+  addItem = (x, y, z, item) => {
+    let key = `${x},${y},${z}`
+    if (this.items[key]) {
+      this.items[key].push(item)
+    } else {
+      this.items[key] = [item]
+    }
+  }
+
+  addItemAtRandomPosition = (item, z) => {
+    let position = this.map.getRandomFloorPosition(this, z)
+    this.addItem(position.x, position.y, position.z, item)
   }
 
   isEmptyFloor = (x, y, z) => {
