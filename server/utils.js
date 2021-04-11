@@ -4,6 +4,7 @@ module.exports = {
   makeid,
   randomize,
   getNeighborPositions,
+  distance,
 }
 
 function makeid(length) {
@@ -39,4 +40,8 @@ function getNeighborPositions(x, y) {
   }
 
   return randomize(tiles)
+}
+
+function distance(a, b) {
+  return Math.sqrt((a.x - b.x) ** 2 + (a.y - b.y) ** 2)
 }
