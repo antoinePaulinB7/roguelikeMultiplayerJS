@@ -1,0 +1,90 @@
+{
+  "origin": ["#map# with #encounter#"],
+  "map": ["#state# #type# in a #location#"],
+  "state": [
+    "hidden",
+    "abandoned",
+    "decrepit",
+    "ancient",
+    "ruined",
+    "burned down",
+    "lost",
+    "untouched",
+    "war torn"
+  ],
+  "type": [
+    "castle",
+    "fortress",
+    "village",
+    "town",
+    "city",
+    "farm",
+    "mine",
+    "temple of #god#",
+    "library",
+    "tavern"
+  ],
+  "location": ["cave", "desert", "jungle", "forest", "field", "mountain"],
+  "encounter": ["#entities#", "#entities# #loot action# #loot#"],
+  "entities": ["a #entity group#", "a #entity group# and #entities2#"],
+  "entities2": ["a #entity group#", "a #entity group# and a #entity group#"],
+  "entity group": [
+    "group of #sentient or wild#s",
+    "group of #sentient or wild#s led by a #sentient or wild#",
+    "#sentient or wild#"
+  ],
+  "sentient or wild": ["#race# #job#", "#wild animal#"],
+  "race": ["orc", "troll", "dwarf", "human", "elf"],
+  "job": [
+    "adventurer",
+    "thief",
+    "bard",
+    "mage",
+    "fighter",
+    "priest of #god#",
+    "druid"
+  ],
+  "loot action": ["searching for", "protecting", "unaware of", "fighting over"],
+  "wild animal": ["#animal#", "#effect# #animal#"],
+  "animal": ["dog", "wolf", "bear", "toad"],
+  "effect": [
+    "fire",
+    "ice",
+    "lightning",
+    "acid",
+    "poison",
+    "magic",
+    "darkness",
+    "illusion"
+  ],
+  "god": [
+    "Death",
+    "Life",
+    "Fortune",
+    "Deceipt",
+    "Love",
+    "Happiness",
+    "Luck",
+    "War",
+    "Crafting",
+    "Fear",
+    "Strange and Unknown",
+    "Nature"
+  ],
+  "loot": [
+    "a pile of gold",
+    "a #magic item#",
+    "a pile of gold and a #magic item#"
+  ],
+  "magic item": [
+    "scroll of #spell#",
+    "tome of #spell#",
+    "world secret",
+    "quest clue",
+    "healing potion",
+    "#effect# #weapon#"
+  ],
+  "weapon": ["sword", "dagger", "bow", "spear", "mace", "axe"],
+  "spell": ["#effect# #spell type#", "invocation of #animal#"],
+  "spell type": ["wall", "projectile", "touch", "area"]
+}
