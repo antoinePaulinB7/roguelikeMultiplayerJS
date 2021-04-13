@@ -220,16 +220,11 @@ Mixins.Sight = {
 Mixins.PlayerActor = {
   name: 'PlayerActor',
   groupName: 'Actor',
-  // queuedActions: [],
   init: function (properties) {
     this._engine = properties['state'].engine
   },
   act: function () {
-    // console.log('lock')
     this._engine.lock()
-    // if (this.queuedActions.length) {
-    //   this.queuedActions.pop()()
-    // }
   },
 }
 
