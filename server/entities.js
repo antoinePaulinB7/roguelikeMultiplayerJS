@@ -246,7 +246,7 @@ Mixins.FungusActor = {
           let y = this.getY() + yOffset
 
           if (this._state.isEmptyFloor(x, y, this.getZ())) {
-            let entity = new Entity(Entities.FungusTemplate(this._state))
+            let entity = this._state.entityRepository.create('fungus')
             entity.setX(x)
             entity.setY(y)
             entity.setZ(this.getZ())
