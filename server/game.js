@@ -235,20 +235,14 @@ class State {
         clientEntity.getZ(),
         50,
       )
-        .filter((entity) => entity) //visibleCells[entity.getX() + ',' + entity.getY()])
+        .filter((entity) => visibleCells[entity.getX() + ',' + entity.getY()])
         .map((entity) => {
           return {
             _x: entity.getX(),
             _y: entity.getY(),
             _char: entity.getChar(),
-            _foreground:
-              entity == clientEntity
-                ? entity.getBackground()
-                : entity.getForeground(),
-            _background:
-              entity == clientEntity
-                ? entity.getForeground()
-                : entity.getBackground(),
+            _foreground: entity.getForeground(),
+            _background: entity.getBackground(),
           }
         })
 
@@ -353,14 +347,8 @@ function handleInput(state, clientId, keyCode) {
       break
   }
 
-  console.log('handle input', keyCode)
-
-  console.log('before', player._local_engine._lock, player._global_engine._lock)
-
   player._local_engine.unlock()
   state.engine.unlock()
-
-  console.log('after', player._local_engine._lock, player._global_engine._lock)
 }
 
 function getUpdatedVelocity(keyCode) {
