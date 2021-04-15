@@ -301,6 +301,13 @@ Mixins.PlayerActor = {
     this._scheduler.add(this, true)
     this._local_engine.start()
   },
+  desyncEntities: function () {
+    this._scheduler._repeat.forEach((entity) => {
+      if (entity != this) {
+        entity.desync()
+      }
+    })
+  },
   act: function () {
     this._local_engine.lock()
   },

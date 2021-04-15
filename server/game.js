@@ -45,7 +45,7 @@ class State {
     this.scheduler = new ROT.Scheduler.Simple()
     this.engine = new ROT.Engine(this.scheduler)
     this.scheduler.add(new Entity(Entities.Stopper(this)), true)
-   
+
     this.entityRepository = new Repository('entities', Entity)
     this.entityRepository.define('fungus', Entities.FungusTemplate(this))
     this.entityRepository.define('bat', Entities.BatTemplate(this))
@@ -127,8 +127,9 @@ class State {
     if (this.entities[key] == entity) {
       delete this.entities[key]
     }
-
-    if (entity.hasMixin('Actor')) {
+    if (entity.hasMixin('PlayerActor')) {
+      entity.desyncEntities()
+    } else if (entity.hasMixin('Actor')) {
       if (entity.hasMixin('TurnSyncer')) {
         entity.syncRemove()
       } else {
