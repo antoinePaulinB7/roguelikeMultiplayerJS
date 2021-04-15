@@ -220,41 +220,15 @@ Mixins.Sight = {
 Mixins.PlayerActor = {
   name: 'PlayerActor',
   groupName: 'Actor',
-  // queuedActions: [],
   init: function (properties) {
     this._global_engine = properties['state'].engine
     this._scheduler = new ROT.Scheduler.Simple()
     this._local_engine = new ROT.Engine(this._scheduler)
-    // this._scheduler.add(this, true)
+    this._scheduler.add(this, true)
     this._local_engine.start()
-    // this._global_engine.lock()
-  },
-  act1: function () {
-    console.log(this._local_engine._lock, this._global_engine._lock)
-
-    console.log('act 1')
-    this._global_engine.lock()
-    this._local_engine.lock()
-
-    this.act = this.act2
-  },
-  act2: function () {
-    console.log(this._local_engine._lock, this._global_engine._lock)
-
-    console.log('act 2')
-    this._local_engine.unlock()
-    this._global_engine.unlock()
-
-    this.act = this.act1
   },
   act: function () {
-    // this.act1()
-    console.log(this._scheduler)
-    this._scheduler._repeat.forEach((entity) => entity.act())
-    this._global_engine.lock()
-
-    console.log(this.getName())
-    // this._local_engine.lock()
+    this._local_engine.lock()
   },
 }
 
@@ -293,6 +267,17 @@ Mixins.FungusActor = {
         }
       }
     }
+  },
+}
+
+Mixins.StopperActor = {
+  name: 'StopperActor',
+  groupName: 'Actor',
+  init: function (properties) {
+    this._global_engine = properties['state'].engine
+  },
+  act: function () {
+    this._global_engine.lock()
   },
 }
 
@@ -431,6 +416,13 @@ Mixins.TurnSyncer = {
     this._state.scheduler.add(this, true)
     this.syncedPlayer = null
   },
+  syncRemove: function () {
+    if (this.syncedPlayer) {
+      this.syncedPlayer._scheduler.remove(this)
+    } else {
+      this._state.scheduler.remove(this)
+    }
+  },
 }
 
 class Entities {}
@@ -450,6 +442,13 @@ Entities.PlayerTemplate = (state) => {
       Mixins.Sight,
       Mixins.MessageRecipient,
     ],
+    state: state,
+  }
+}
+
+Entities.Stopper = (state) => {
+  return {
+    mixins: [Mixins.StopperActor],
     state: state,
   }
 }

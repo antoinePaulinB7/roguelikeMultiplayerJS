@@ -43,6 +43,8 @@ class State {
     this.scheduler = new ROT.Scheduler.Simple()
     this.engine = new ROT.Engine(this.scheduler)
 
+    this.scheduler.add(new Entity(Entities.Stopper(this)), true)
+
     let templates = [
       Entities.FungusTemplate(this),
       Entities.BatTemplate(this),
@@ -101,7 +103,7 @@ class State {
   addEntity = (entity) => {
     this.updateEntityPosition(entity)
 
-    if (entity.hasMixin('Actor')) {
+    if (entity.hasMixin('Actor') && !entity.hasMixin('PlayerActor')) {
       this.scheduler.add(entity, true)
     }
   }
@@ -114,7 +116,11 @@ class State {
     }
 
     if (entity.hasMixin('Actor')) {
-      this.scheduler.remove(entity)
+      if (entity.hasMixin('TurnSyncer')) {
+        entity.syncRemove()
+      } else {
+        this.scheduler.remove(entity)
+      }
     }
 
     if (entity.hasMixin('ClientController')) {
@@ -351,8 +357,8 @@ function handleInput(state, clientId, keyCode) {
 
   console.log('before', player._local_engine._lock, player._global_engine._lock)
 
+  player._local_engine.unlock()
   state.engine.unlock()
-  // player._local_engine.unlock()
 
   console.log('after', player._local_engine._lock, player._global_engine._lock)
 }
