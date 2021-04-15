@@ -44,6 +44,7 @@ class State {
     this.items = {}
     this.scheduler = new ROT.Scheduler.Simple()
     this.engine = new ROT.Engine(this.scheduler)
+    this.scheduler.add(new Entity(Entities.Stopper(this)), true)
 
     this.entityRepository = new Repository('entities', Entity)
     this.entityRepository.define('fungus', Entities.FungusTemplate(this))
@@ -115,7 +116,7 @@ class State {
   addEntity = (entity) => {
     this.updateEntityPosition(entity)
 
-    if (entity.hasMixin('Actor')) {
+    if (entity.hasMixin('Actor') && !entity.hasMixin('PlayerActor')) {
       this.scheduler.add(entity, true)
     }
   }
@@ -126,9 +127,14 @@ class State {
     if (this.entities[key] == entity) {
       delete this.entities[key]
     }
-
-    if (entity.hasMixin('Actor')) {
-      this.scheduler.remove(entity)
+    if (entity.hasMixin('PlayerActor')) {
+      entity.desyncEntities()
+    } else if (entity.hasMixin('Actor')) {
+      if (entity.hasMixin('TurnSyncer')) {
+        entity.syncRemove()
+      } else {
+        this.scheduler.remove(entity)
+      }
     }
 
     if (entity.hasMixin('ClientController')) {
@@ -222,7 +228,9 @@ class State {
         return ServerMessages.PLAYER_DIED
       }
 
-      range = clientEntity.getSightRadius()
+      range = clientEntity.hasMixin('Sight')
+        ? clientEntity.getSightRadius()
+        : range
 
       let visibleCells = {}
 
@@ -405,6 +413,7 @@ function handleInput(state, clientId, keyCode) {
       break
   }
 
+  player._local_engine.unlock()
   state.engine.unlock()
 }
 

@@ -1,7 +1,7 @@
 const { Entity } = require('./entity')
 const { Tile } = require('./tile')
 const ROT = require('rot-js')
-const { randomize } = require('./utils')
+const { randomize, distance } = require('./utils')
 
 class Mixins {}
 
@@ -295,10 +295,21 @@ Mixins.PlayerActor = {
   name: 'PlayerActor',
   groupName: 'Actor',
   init: function (properties) {
-    this._engine = properties['state'].engine
+    this._global_engine = properties['state'].engine
+    this._scheduler = new ROT.Scheduler.Simple()
+    this._local_engine = new ROT.Engine(this._scheduler)
+    this._scheduler.add(this, true)
+    this._local_engine.start()
+  },
+  desyncEntities: function () {
+    this._scheduler._repeat.forEach((entity) => {
+      if (entity != this) {
+        entity.desync()
+      }
+    })
   },
   act: function () {
-    this._engine.lock()
+    this._local_engine.lock()
   },
 }
 
@@ -340,6 +351,17 @@ Mixins.FungusActor = {
   },
 }
 
+Mixins.StopperActor = {
+  name: 'StopperActor',
+  groupName: 'Actor',
+  init: function (properties) {
+    this._global_engine = properties['state'].engine
+  },
+  act: function () {
+    this._global_engine.lock()
+  },
+}
+
 Mixins.WanderActor = {
   name: 'WanderActor',
   groupName: 'Actor',
@@ -371,11 +393,116 @@ Mixins.MessageRecipient = {
 
 Mixins.ClientController = {
   name: 'ClientController',
+  groupName: 'Controller',
   init: function (properties) {
     this._clientId = properties['clientId']
   },
   getClientId: function () {
     return this._clientId
+  },
+}
+
+Mixins.TurnSyncer = {
+  name: 'TurnSyncer',
+  init: function (properties) {
+    this._state = properties['state']
+    this._syncRange = properties['syncRange'] || 10
+    this._syncTime = properties['syncTime'] || 5
+
+    if (!this.hasMixin('Actor')) {
+      throw new Error(
+        `This ${this.getName()} requires error Actor mixin for TurnSyncer to work`,
+      )
+    }
+
+    if (this.hasMixin('ClientController')) {
+      throw new Error(
+        `This ${this.getName()} cannot have both a ClientController and a TurnSyncer`,
+      )
+    }
+
+    this.turnsTilDesync = this._syncTime
+
+    this.oldAct = this.act
+
+    this.syncedPlayer = null
+
+    this.act = () => {
+      let position = { x: this.getX(), y: this.getY() }
+
+      if (this.syncedPlayer) {
+        let entityPosition = {
+          x: this.syncedPlayer.getX(),
+          y: this.syncedPlayer.getY(),
+        }
+        let dist = distance(position, entityPosition)
+
+        if (this.syncedPlayer.getZ() != this.getZ()) {
+          this.desync()
+        } else if (dist > this._syncRange) {
+          this.turnsTilDesync--
+
+          if (this.turnsTilDesync <= 0) {
+            this.desync()
+          }
+        } else {
+          this.turnsTilDesync = this._syncTime
+        }
+      } else {
+        let clientEntities = Object.values(this._state.entities).filter(
+          (entity) => {
+            return (
+              entity.getZ() == this.getZ() &&
+              entity.hasMixin('ClientController')
+            )
+          },
+        )
+
+        let minDistance = Infinity
+        let closest = null
+
+        clientEntities.forEach((entity) => {
+          let entityPosition = { x: entity.getX(), y: entity.getY() }
+
+          let dist = distance(position, entityPosition)
+
+          // console.log(dist)
+
+          if (dist < minDistance) {
+            minDistance = dist
+            closest = entity
+          }
+        })
+
+        if (minDistance <= this._syncRange) {
+          this.sync(closest)
+        }
+      }
+
+      this.oldAct()
+    }
+  },
+  sync: function (clientEntity) {
+    this._state.scheduler.remove(this)
+    clientEntity._scheduler.add(this, true)
+    this.syncedPlayer = clientEntity
+    this.turnsTilDesync = this._syncTime
+
+    console.log(this.getName(), 'syncing with', clientEntity.getName())
+  },
+  desync: function () {
+    if (this.syncedPlayer) {
+      this.syncedPlayer._scheduler.remove(this)
+    }
+    this._state.scheduler.add(this, true)
+    this.syncedPlayer = null
+  },
+  syncRemove: function () {
+    if (this.syncedPlayer) {
+      this.syncedPlayer._scheduler.remove(this)
+    } else {
+      this._state.scheduler.remove(this)
+    }
   },
 }
 
@@ -401,6 +528,13 @@ Entities.PlayerTemplate = (state) => {
   }
 }
 
+Entities.Stopper = (state) => {
+  return {
+    mixins: [Mixins.StopperActor],
+    state: state,
+  }
+}
+
 Entities.FungusTemplate = (state) => {
   return {
     name: 'fungus',
@@ -422,6 +556,7 @@ Entities.BatTemplate = (state) => {
     mixins: [
       Mixins.Moveable,
       Mixins.WanderActor,
+      Mixins.TurnSyncer,
       Mixins.Attacker,
       Mixins.Destructible,
     ],
@@ -439,6 +574,7 @@ Entities.NewtTemplate = (state) => {
     mixins: [
       Mixins.Moveable,
       Mixins.WanderActor,
+      Mixins.TurnSyncer,
       Mixins.Attacker,
       Mixins.Destructible,
     ],
