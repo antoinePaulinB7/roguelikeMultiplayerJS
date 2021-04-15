@@ -11,6 +11,8 @@ const { Builder } = require('./builder')
 const ServerMessages = require('./server-messages')
 
 const Utils = require('./utils')
+const { Repository } = require('./repository')
+const { Item } = require('./item')
 
 module.exports = {
   initGame,
@@ -42,21 +44,32 @@ class State {
     this.items = {}
     this.scheduler = new ROT.Scheduler.Simple()
     this.engine = new ROT.Engine(this.scheduler)
-
     this.scheduler.add(new Entity(Entities.Stopper(this)), true)
+   
+    this.entityRepository = new Repository('entities', Entity)
+    this.entityRepository.define('fungus', Entities.FungusTemplate(this))
+    this.entityRepository.define('bat', Entities.BatTemplate(this))
+    this.entityRepository.define('newt', Entities.NewtTemplate(this))
 
-    let templates = [
-      Entities.FungusTemplate(this),
-      Entities.BatTemplate(this),
-      Entities.NewtTemplate(this),
-    ]
+    this.itemRepository = new Repository('items', Item)
+    this.itemRepository.define('apple', {
+      name: 'apple',
+      char: '%',
+      foreground: 'red',
+    })
+    this.itemRepository.define('rock', {
+      name: 'rock',
+      char: '*',
+      foreground: 'grey',
+    })
 
     for (let z = 0; z < this.map.getDepth(); z++) {
-      for (let i = 0; i < 10; i++) {
-        this.addEntityAtRandomPosition(
-          new Entity(templates[Math.floor(Math.random() * templates.length)]),
-          z,
-        )
+      for (let i = 0; i < 15; i++) {
+        this.addEntityAtRandomPosition(this.entityRepository.createRandom(), z)
+      }
+
+      for (let i = 0; i < 50; i++) {
+        this.addItemAtRandomPosition(this.itemRepository.createRandom(), z)
       }
     }
   }
@@ -248,6 +261,8 @@ class State {
           }
         })
 
+      let sectionedItems = {}
+
       let sectionedMap = {
         _width: this.map.getWidth(),
         _height: this.map.getHeight(),
@@ -259,11 +274,8 @@ class State {
       for (let x = 0; x < 2 * range + 1; x++) {
         sectionedMap._tiles.push([])
         for (let y = 0; y < 2 * range + 1; y++) {
-          if (
-            visibleCells[
-              `${x + sectionedMap._offsetX},${y + sectionedMap._offsetY}`
-            ]
-          ) {
+          let key = `${x + sectionedMap._offsetX},${y + sectionedMap._offsetY}`
+          if (visibleCells[key]) {
             sectionedMap._tiles[x].push(
               this.map.getTile(
                 x + sectionedMap._offsetX,
@@ -271,13 +283,27 @@ class State {
                 clientEntity.getZ(),
               ),
             )
+
+            let items = this.getItemsAt(
+              x + sectionedMap._offsetX,
+              y + sectionedMap._offsetY,
+              clientEntity.getZ(),
+            )
+
+            if (items) {
+              sectionedItems[key] = items
+            }
           } else {
             sectionedMap._tiles[x].push(null)
           }
         }
       }
 
-      return JSON.stringify({ map: sectionedMap, entities: compressedEntities })
+      return JSON.stringify({
+        map: sectionedMap,
+        entities: compressedEntities,
+        items: sectionedItems,
+      })
     } else {
       let compressedEntities = Object.values(this.entities).map((entity) => {
         return {
@@ -288,7 +314,26 @@ class State {
           _background: entity.getBackground(),
         }
       })
-      return JSON.stringify({ map: this.map, entities: compressedEntities })
+
+      let mapItems = {}
+
+      for (let x = 0; x < this.map.getWidth(); x++) {
+        for (let y = 0; y < this.map.getHeight(); y++) {
+          let key = `${x},${y}`
+
+          let items = this.getItemsAt(x, y, clientEntity.getZ())
+
+          if (items) {
+            mapItems[key] = items
+          }
+        }
+      }
+
+      return JSON.stringify({
+        map: this.map,
+        entities: compressedEntities,
+        items: mapItems,
+      })
     }
   }
 }
@@ -340,12 +385,30 @@ function handleInput(state, clientId, keyCode) {
       player.tryMove(0, 1, 0, state)
       break
     case ROT.KEYS.VK_GREATER_THAN:
-      console.log('>')
       player.tryMove(0, 0, 1, state)
       break
     case ROT.KEYS.VK_LESS_THAN:
-      console.log('<')
       player.tryMove(0, 0, -1, state)
+      break
+    case ROT.KEYS.VK_G:
+      console.log('g')
+
+      let mapItems = state.getItemsAt(
+        player.getX(),
+        player.getY(),
+        player.getZ(),
+      )
+
+      if (mapItems) {
+        if (!player.pickupItems([0])) {
+          state.sendMessage(player, 'Your inventory is full.')
+        } else {
+          console.log(player.getItems())
+        }
+      } else {
+        state.sendMessage(player, 'There is nothing to take here.')
+      }
+
       break
   }
 

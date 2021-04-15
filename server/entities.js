@@ -90,7 +90,17 @@ Mixins.PlayerMoveable = {
         return false
       }
     } else if (tile.isWalkable()) {
-      this.setPosition(state, x, y, this.getZ())
+      this.setPosition(state, x, y, z)
+
+      let items = state.getItemsAt(x, y, z)
+      if (items) {
+        if (items.length === 1) {
+          state.sendMessage(this, 'You see %s.', [items[0].describeA()])
+        } else {
+          state.sendMessage(this, 'You see several items here.')
+        }
+      }
+
       return true
     } else if (tile.isDiggable()) {
       state.map.dig(x, y, z)
@@ -217,6 +227,70 @@ Mixins.Sight = {
   },
 }
 
+Mixins.InventoryHolder = {
+  name: 'InventoryHolder',
+  init: function (properties) {
+    let inventorySlots = properties['inventorySlots'] || 10
+    this._items = new Array(inventorySlots)
+    this._state = properties['state'] || this._state
+  },
+  getItems: function () {
+    return this._items
+  },
+  getItem: function (index) {
+    return this._items[index]
+  },
+  addItem: function (item) {
+    for (let i = 0; i < this._items.length; i++) {
+      if (!this._items[i]) {
+        this._items[i] = item
+        return true
+      }
+    }
+    return false
+  },
+  removeItem: function (index) {
+    this._items[i] = null
+  },
+  canAddItem: function () {
+    for (let i = 0; i < this._items.length; i++) {
+      if (!this._items[i]) {
+        return true
+      }
+    }
+    return false
+  },
+  pickupItems: function (indices) {
+    let mapItems = this._state.getItemsAt(this.getX(), this.getY(), this.getZ())
+    let added = 0
+
+    indices.forEach((element, index) => {
+      if (this.addItem(mapItems[element - added])) {
+        mapItems.splice(element - added, 1)
+        added++
+      }
+    })
+
+    this._state.setItemsAt(this.getX(), this.getY(), this.getZ(), mapItems)
+
+    return added === indices.length
+  },
+  dropItem: function (index) {
+    if (this._items[index]) {
+      if (this._state) {
+        this._state.addItem(
+          this.getX(),
+          this.getZ(),
+          this.getZ(),
+          this._items[index],
+        )
+      }
+
+      this.removeItem(index)
+    }
+  },
+}
+
 Mixins.PlayerActor = {
   name: 'PlayerActor',
   groupName: 'Actor',
@@ -250,7 +324,7 @@ Mixins.FungusActor = {
           let y = this.getY() + yOffset
 
           if (this._state.isEmptyFloor(x, y, this.getZ())) {
-            let entity = new Entity(Entities.FungusTemplate(this._state))
+            let entity = this._state.entityRepository.create('fungus')
             entity.setX(x)
             entity.setY(y)
             entity.setZ(this.getZ())
@@ -437,6 +511,7 @@ Entities.PlayerTemplate = (state) => {
       Mixins.PlayerMoveable,
       Mixins.PlayerActor,
       Mixins.ClientController,
+      Mixins.InventoryHolder,
       Mixins.Attacker,
       Mixins.Destructible,
       Mixins.Sight,

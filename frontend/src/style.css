@@ -37,6 +37,7 @@ canvas {
 
 .sidebar.is-active {
   transform: translateX(0%);
+  z-index: 10;
 }
 
 .sidebar .tilesheet-image {

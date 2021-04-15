@@ -79,6 +79,8 @@ myImage.addEventListener('mousemove', (event) => {
 
     return value.x === tileX && value.y === tileY
   })
+
+  // console.log(tileX, tileY, name)
 })
 
 const tilesheetElement = document.querySelector('#tilesheet')
@@ -167,6 +169,8 @@ function clearDisplay() {
 function paintGame(state) {
   const map = state.map
 
+  const items = state.items
+
   display.clear()
 
   for (let x = 0; x < map._tiles.length; x++) {
@@ -185,6 +189,17 @@ function paintGame(state) {
           map._tiles[x][y]._char,
           map._tiles[x][y]._foreground,
           map._tiles[x][y]._background,
+        )
+      }
+      let key = `${x + (map._offsetX || 0)},${y + (map._offsetY || 0)}`
+      let currentItems = items[key]
+      if (currentItems) {
+        display.draw(
+          x + (map._offsetX || 0),
+          y + (map._offsetY || 0),
+          currentItems[0]._char,
+          currentItems[0]._foreground,
+          currentItems[0]._background,
         )
       }
     }
