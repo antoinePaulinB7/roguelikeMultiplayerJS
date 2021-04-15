@@ -214,7 +214,9 @@ class State {
         return ServerMessages.PLAYER_DIED
       }
 
-      range = clientEntity.getSightRadius()
+      range = clientEntity.hasMixin('Sight')
+        ? clientEntity.getSightRadius()
+        : range
 
       let visibleCells = {}
 
@@ -233,7 +235,7 @@ class State {
         clientEntity.getX(),
         clientEntity.getY(),
         clientEntity.getZ(),
-        50,
+        range,
       )
         .filter((entity) => visibleCells[entity.getX() + ',' + entity.getY()])
         .map((entity) => {
