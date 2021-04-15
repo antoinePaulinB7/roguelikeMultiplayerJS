@@ -217,6 +217,72 @@ Mixins.Sight = {
   },
 }
 
+Mixins.InventoryHolder = {
+  name: 'InventoryHolder',
+  init: function (properties) {
+    let inventorySlots = properties['inventorySlots'] || 10
+    this._items = [inventorySlots]
+    this._state = properties['state'] || this._state
+  },
+  getItems: function () {
+    return this._items
+  },
+  getItem: function (index) {
+    return this._items[index]
+  },
+  addItem: function (item) {
+    for (let i = 0; i < this._items.length; i++) {
+      if (!this._items[i]) {
+        this._items[i] = item
+        return true
+      }
+    }
+    return false
+  },
+  removeItem: function (index) {
+    this._items[i] = null
+  },
+  canAddItem: function () {
+    for (let i = 0; i < this._items.length; i++) {
+      if (!this._items[i]) {
+        return true
+      }
+    }
+    return false
+  },
+  pickupItems: function (indices) {
+    let mapItems = this._state.getItemsAt(this.getX(), this.getZ(), this.getZ())
+    let added = 0
+
+    indices.forEach((element, index) => {
+      if (this.addItem(mapItems[element - added])) {
+        mapItems.splice(element - added, 1)
+        added++
+      } else {
+        break
+      }
+    })
+
+    this._state.setItemsAt(this.getX(), this.getZ(), this.getZ(), mapItems)
+
+    return added === indices.length
+  },
+  dropItem: function (index) {
+    if (this._items[index]) {
+      if (this._state) {
+        this._state.addItem(
+          this.getX(),
+          this.getZ(),
+          this.getZ(),
+          this._items[index],
+        )
+      }
+
+      this.removeItem(index)
+    }
+  },
+}
+
 Mixins.PlayerActor = {
   name: 'PlayerActor',
   groupName: 'Actor',
@@ -317,6 +383,7 @@ Entities.PlayerTemplate = (state) => {
       Mixins.PlayerMoveable,
       Mixins.PlayerActor,
       Mixins.ClientController,
+      Mixins.InventoryHolder,
       Mixins.Attacker,
       Mixins.Destructible,
       Mixins.Sight,
