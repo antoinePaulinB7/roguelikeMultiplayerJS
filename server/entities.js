@@ -90,7 +90,17 @@ Mixins.PlayerMoveable = {
         return false
       }
     } else if (tile.isWalkable()) {
-      this.setPosition(state, x, y, this.getZ())
+      this.setPosition(state, x, y, z)
+
+      let items = state.getItemsAt(x, y, z)
+      if (items) {
+        if (items.length === 1) {
+          state.sendMessage(this, 'You see %s.', [items[0].describeA()])
+        } else {
+          state.sendMessage(this, 'You see several items here.')
+        }
+      }
+
       return true
     } else if (tile.isDiggable()) {
       state.map.dig(x, y, z)
@@ -221,7 +231,7 @@ Mixins.InventoryHolder = {
   name: 'InventoryHolder',
   init: function (properties) {
     let inventorySlots = properties['inventorySlots'] || 10
-    this._items = [inventorySlots]
+    this._items = new Array(inventorySlots)
     this._state = properties['state'] || this._state
   },
   getItems: function () {
@@ -251,19 +261,17 @@ Mixins.InventoryHolder = {
     return false
   },
   pickupItems: function (indices) {
-    let mapItems = this._state.getItemsAt(this.getX(), this.getZ(), this.getZ())
+    let mapItems = this._state.getItemsAt(this.getX(), this.getY(), this.getZ())
     let added = 0
 
     indices.forEach((element, index) => {
       if (this.addItem(mapItems[element - added])) {
         mapItems.splice(element - added, 1)
         added++
-      } else {
-        break
       }
     })
 
-    this._state.setItemsAt(this.getX(), this.getZ(), this.getZ(), mapItems)
+    this._state.setItemsAt(this.getX(), this.getY(), this.getZ(), mapItems)
 
     return added === indices.length
   },

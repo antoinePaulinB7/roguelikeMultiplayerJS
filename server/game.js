@@ -67,7 +67,7 @@ class State {
         this.addEntityAtRandomPosition(this.entityRepository.createRandom(), z)
       }
 
-      for (let i = 0; i < 15; i++) {
+      for (let i = 0; i < 50; i++) {
         this.addItemAtRandomPosition(this.itemRepository.createRandom(), z)
       }
     }
@@ -378,12 +378,30 @@ function handleInput(state, clientId, keyCode) {
       player.tryMove(0, 1, 0, state)
       break
     case ROT.KEYS.VK_GREATER_THAN:
-      console.log('>')
       player.tryMove(0, 0, 1, state)
       break
     case ROT.KEYS.VK_LESS_THAN:
-      console.log('<')
       player.tryMove(0, 0, -1, state)
+      break
+    case ROT.KEYS.VK_G:
+      console.log('g')
+
+      let mapItems = state.getItemsAt(
+        player.getX(),
+        player.getY(),
+        player.getZ(),
+      )
+
+      if (mapItems) {
+        if (!player.pickupItems([0])) {
+          state.sendMessage(player, 'Your inventory is full.')
+        } else {
+          console.log(player.getItems())
+        }
+      } else {
+        state.sendMessage(player, 'There is nothing to take here.')
+      }
+
       break
   }
 
