@@ -12,6 +12,21 @@ const ServerMessages = require('./server-messages')
 const state = {}
 const clientRooms = {}
 
+const logMemory = process.argv.includes('memory')
+
+if (logMemory) {
+  setInterval(() => {
+    const used = process.memoryUsage()
+    console.log('Memory Usage')
+    for (let key in used) {
+      console.log(
+        `${key} ${Math.round((used[key] / 1024 / 1024) * 100) / 100} MB`,
+      )
+    }
+    console.log(' ')
+  }, 1000)
+}
+
 io.on('connection', (client) => {
   client.on('keydown', handleKeypress)
   client.on('keypress', handleKeypress)
