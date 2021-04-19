@@ -1,4 +1,3 @@
-const { Entity } = require('./entity')
 const { Tile } = require('./tile')
 const ROT = require('rot-js')
 const { randomize, distance } = require('./utils')
@@ -165,6 +164,10 @@ Mixins.Destructible = {
     this._maxHp = template['maxHp'] || 10
     this._hp = template['hp'] || this._maxHp
     this._defenseValue = template['defenseValue'] || 0
+    this._alive = true
+  },
+  isAlive: function () {
+    return this._alive
   },
   getHp: function () {
     return this._hp
@@ -179,9 +182,23 @@ Mixins.Destructible = {
     this._hp -= damage
     if (this._hp <= 0) {
       state.sendMessage(attacker, 'You kill the %s!', [this.getName()])
-      state.sendMessage(this, 'You die!')
-      state.removeEntity(this)
+      this.kill(state)
     }
+  },
+  kill: function (state, message) {
+    if (!this._alive) {
+      return
+    }
+
+    this._alive = false
+
+    if (message) {
+      state.sendMessage(this, message)
+    } else {
+      state.sendMessage(this, 'You die!')
+    }
+
+    state.removeEntity(this)
   },
 }
 
@@ -232,7 +249,6 @@ Mixins.InventoryHolder = {
   init: function (properties) {
     let inventorySlots = properties['inventorySlots'] || 10
     this._items = new Array(inventorySlots)
-    this._state = properties['state'] || this._state
   },
   getItems: function () {
     return this._items
@@ -260,8 +276,8 @@ Mixins.InventoryHolder = {
     }
     return false
   },
-  pickupItems: function (indices) {
-    let mapItems = this._state.getItemsAt(this.getX(), this.getY(), this.getZ())
+  pickupItems: function (indices, state) {
+    let mapItems = state.getItemsAt(this.getX(), this.getY(), this.getZ())
     let added = 0
 
     indices.forEach((element, index) => {
@@ -271,22 +287,56 @@ Mixins.InventoryHolder = {
       }
     })
 
-    this._state.setItemsAt(this.getX(), this.getY(), this.getZ(), mapItems)
+    state.setItemsAt(this.getX(), this.getY(), this.getZ(), mapItems)
 
     return added === indices.length
   },
-  dropItem: function (index) {
+  dropItem: function (index, state) {
     if (this._items[index]) {
-      if (this._state) {
-        this._state.addItem(
-          this.getX(),
-          this.getZ(),
-          this.getZ(),
-          this._items[index],
-        )
+      if (state) {
+        state.addItem(this.getX(), this.getZ(), this.getZ(), this._items[index])
       }
 
       this.removeItem(index)
+    }
+  },
+}
+
+Mixins.FoodConsumer = {
+  name: 'FoodConsumer',
+  init: function (template) {
+    this._maxFullness = template['maxFullness'] || 1000
+    this._fullness = template['fullness'] || this._maxFullness / 2
+    this._fullnessDepletionRate = template['fullnessDepletionRate'] || 1
+
+    if (!this.hasMixin('Destructible')) {
+      throw new Error(
+        `This ${this.getName()} requires error Destructible mixin for FoodConsumer to work`,
+      )
+    }
+  },
+  addTurnHunger: function (state) {
+    this.modifyFullnessBy(-this._fullnessDepletionRate, state)
+  },
+  modifyFullnessBy: function (points, state) {
+    this._fullness += points
+    if (this._fullness <= 0) {
+      this.kill(state, 'You die of starvation!')
+    } else if (this._fullness > this._maxFullness) {
+      this._fullness = this._maxFullness
+    }
+  },
+  getHungerState: function () {
+    let ratio = Math.max(this._fullness / this._maxFullness, 0)
+
+    if (ratio <= 0.1) {
+      return 'Starving'
+    } else if (ratio <= 0.35) {
+      return 'Hungry'
+    } else if (ratio >= 0.75) {
+      return 'Full'
+    } else {
+      return 'Satiated'
     }
   },
 }
@@ -295,11 +345,11 @@ Mixins.PlayerActor = {
   name: 'PlayerActor',
   groupName: 'Actor',
   init: function (properties) {
-    this._global_engine = properties['state'].engine
     this._scheduler = new ROT.Scheduler.Simple()
     this._local_engine = new ROT.Engine(this._scheduler)
     this._scheduler.add(this, true)
     this._local_engine.start()
+    this._state = properties['state'] || this._state
   },
   desyncEntities: function () {
     this._scheduler._repeat.forEach((entity) => {
@@ -309,6 +359,11 @@ Mixins.PlayerActor = {
     })
   },
   act: function () {
+    if (this.hasMixin('FoodConsumer')) {
+      this.addTurnHunger(this._state)
+      this._state.sendMessage(this, 'Hunger level %s', [this.getHungerState()])
+    }
+
     this._local_engine.lock()
   },
 }
@@ -405,7 +460,7 @@ Mixins.ClientController = {
 Mixins.TurnSyncer = {
   name: 'TurnSyncer',
   init: function (properties) {
-    this._state = properties['state']
+    this._state = properties['state'] || this._state
     this._syncRange = properties['syncRange'] || 10
     this._syncTime = properties['syncTime'] || 5
 
@@ -521,6 +576,7 @@ Entities.PlayerTemplate = (state) => {
       Mixins.InventoryHolder,
       Mixins.Attacker,
       Mixins.Destructible,
+      Mixins.FoodConsumer,
       Mixins.Sight,
       Mixins.MessageRecipient,
     ],

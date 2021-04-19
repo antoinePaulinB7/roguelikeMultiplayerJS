@@ -4,6 +4,7 @@ const { Glyph } = require('./glyph')
 const { Tile } = require('./tile')
 const { Map } = require('./map')
 const { Entities, Mixins } = require('./entities')
+const { Items, ItemMixins } = require('./items')
 
 const ROT = require('rot-js')
 const { Entity } = require('./entity')
@@ -56,6 +57,7 @@ class State {
       name: 'apple',
       char: '%',
       foreground: 'red',
+      mixins: [ItemMixins.Edible],
     })
     this.itemRepository.define('rock', {
       name: 'rock',
@@ -401,7 +403,7 @@ function handleInput(state, clientId, keyCode) {
       )
 
       if (mapItems) {
-        if (!player.pickupItems([0])) {
+        if (!player.pickupItems([0], state)) {
           state.sendMessage(player, 'Your inventory is full.')
         } else {
           console.log(player.getItems())
