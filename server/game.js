@@ -155,7 +155,6 @@ class State {
   sendMessage = (recipient, message, args) => {
     if (recipient.hasMixin('MessageRecipient')) {
       if (args) {
-        // console.log(...args)
         message = ROT.Util.format(message, ...args)
       }
       recipient.receiveMessage(message)
@@ -164,7 +163,6 @@ class State {
 
   sendMessageNearby = (x, y, z, message, args) => {
     if (args) {
-      // console.log(...args)
       message = ROT.Util.format(message, ...args)
     }
 
@@ -394,8 +392,6 @@ function handleInput(state, clientId, keyCode) {
       player.tryMove(0, 0, -1, state)
       break
     case ROT.KEYS.VK_G:
-      console.log('g')
-
       let mapItems = state.getItemsAt(
         player.getX(),
         player.getY(),

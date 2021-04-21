@@ -43,8 +43,6 @@ io.on('connection', (client) => {
 
     const room = io.sockets.adapter.rooms.get(gameCode)
 
-    console.log(room)
-
     let allUsers
     if (!room) {
       client.emit('unknownGame')
@@ -98,10 +96,6 @@ io.on('connection', (client) => {
     }
 
     handleInput(state[roomName], client.id, keyCode)
-
-    // let totalTime = Date.now() - time
-
-    // console.log(client.id, keyCode, totalTime)
   }
 })
 
@@ -126,8 +120,6 @@ function startGameInterval(roomName) {
         clearInterval(intervalId)
       }
     }
-
-    // console.log(Date.now() - time)
   }, 1000 / FRAME_RATE)
 }
 
