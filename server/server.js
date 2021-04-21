@@ -101,7 +101,6 @@ io.on('connection', (client) => {
 
 function startGameInterval(roomName) {
   const intervalId = setInterval(() => {
-    // let time = Date.now()
     const winner = gameLoop(state[roomName])
 
     let clients = io.sockets.adapter.rooms.get(roomName)
