@@ -80,8 +80,6 @@ io.on('connection', (client) => {
   }
 
   function handleKeypress(keyCode) {
-    // let time = Date.now()
-
     const roomName = clientRooms[client.id]
 
     if (!roomName) {
