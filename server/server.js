@@ -122,22 +122,6 @@ function startGameInterval(roomName) {
   }, 1000 / FRAME_RATE)
 }
 
-const nulls = { Engine: true, Simple: true }
-const ignores = { Tile: true }
-
-function getCircularReplacer() {
-  const seen = new WeakSet()
-
-  return (key, value) => {
-    if (typeof value === 'object' && value !== null) {
-      if (nulls[value.constructor.name]) {
-        return null
-      }
-    }
-    return value
-  }
-}
-
 function emitGameState(clientId, state) {
   const clientSocket = io.sockets.sockets.get(clientId)
   let stateData = state.getJSON(clientId)
