@@ -14,6 +14,8 @@ const clientRooms = {}
 
 const logMemory = process.argv.includes('memory')
 
+const port = process.env.PORT || 3000
+
 if (logMemory) {
   setInterval(() => {
     const used = process.memoryUsage()
@@ -136,4 +138,4 @@ function emitGameOver(clientId, winner) {
   clientSocket.emit('gameOver', JSON.stringify({ winner }))
 }
 
-io.listen('3000')
+io.listen(port)
